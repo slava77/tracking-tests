@@ -6,8 +6,17 @@
 <use name="PhysicsTools/UtilAlgos"/>
 <use name="FWCore/ServiceRegistry"/>
 
+<use name="DataFormats/TrackReco"/>
+<use name="Geometry/Records"/>
+<use name="Geometry/CommonDetUnit"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
+<use name="SimDataFormats/CrossingFrame"/>
+<use name="root"/>
+<use name="CommonTools/UtilAlgos"/>
+
 <flags EDM_PLUGIN="1"/>
 <use name="DataFormats/TrackReco"/>
 <export>
    <lib name="1"/>
 </export>
+
