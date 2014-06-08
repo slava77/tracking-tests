@@ -136,9 +136,27 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     if (saveHists) {
       //track basic plots
       makeFillHisto1D<TH1F,int>("algo","algo",10,0,10,itTrack->algo()-4);
+      makeFillHisto1D<TH1F,int>("nhits_tk","nhits_tk",100,0,100,itTrack->numberOfValidHits());
+      makeFillHisto1D<TH1F,int>("npixhits_tk","npixhits_tk",100,0,100,itTrack->hitPattern().numberOfValidPixelHits());
+      makeFillHisto1D<TH1F,int>("npixbhits_tk","npixbhits_tk",100,0,100,itTrack->hitPattern().numberOfValidPixelBarrelHits());
+      makeFillHisto1D<TH1F,int>("npixfhits_tk","npixfhits_tk",100,0,100,itTrack->hitPattern().numberOfValidPixelEndcapHits());
+      makeFillHisto1D<TH1F,int>("nstriphits_tk","nstriphits_tk",100,0,100,itTrack->hitPattern().numberOfValidStripHits());
+      makeFillHisto1D<TH1F,int>("ntibhits_tk","ntibhits_tk",100,0,100,itTrack->hitPattern().numberOfValidStripTIBHits());
+      makeFillHisto1D<TH1F,int>("ntidhits_tk","ntidhits_tk",100,0,100,itTrack->hitPattern().numberOfValidStripTIDHits());
+      makeFillHisto1D<TH1F,int>("ntobhits_tk","ntobhits_tk",100,0,100,itTrack->hitPattern().numberOfValidStripTOBHits());
+      makeFillHisto1D<TH1F,int>("ntechits_tk","ntechits_tk",100,0,100,itTrack->hitPattern().numberOfValidStripTECHits());
       if (itTrack->quality(TrackBase::highPurity)) {
 	totHp++;
 	makeFillHisto1D<TH1F,int>("algo_hp","algo_hp",10,0,10,itTrack->algo()-4);
+	makeFillHisto1D<TH1F,int>("nhits_hp","nhits_hp",100,0,100,itTrack->numberOfValidHits());
+	makeFillHisto1D<TH1F,int>("npixhits_hp","npixhits_hp",100,0,100,itTrack->hitPattern().numberOfValidPixelHits());
+	makeFillHisto1D<TH1F,int>("npixbhits_hp","npixbhits_hp",100,0,100,itTrack->hitPattern().numberOfValidPixelBarrelHits());
+	makeFillHisto1D<TH1F,int>("npixfhits_hp","npixfhits_hp",100,0,100,itTrack->hitPattern().numberOfValidPixelEndcapHits());
+	makeFillHisto1D<TH1F,int>("nstriphits_hp","nstriphits_hp",100,0,100,itTrack->hitPattern().numberOfValidStripHits());
+	makeFillHisto1D<TH1F,int>("ntibhits_hp","ntibhits_hp",100,0,100,itTrack->hitPattern().numberOfValidStripTIBHits());
+	makeFillHisto1D<TH1F,int>("ntidhits_hp","ntidhits_hp",100,0,100,itTrack->hitPattern().numberOfValidStripTIDHits());
+	makeFillHisto1D<TH1F,int>("ntobhits_hp","ntobhits_hp",100,0,100,itTrack->hitPattern().numberOfValidStripTOBHits());
+	makeFillHisto1D<TH1F,int>("ntechits_hp","ntechits_hp",100,0,100,itTrack->hitPattern().numberOfValidStripTECHits());
       }
     }
   }
@@ -179,7 +197,7 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     for (auto it = matchedHits->begin(); it!=matchedHits->end(); it++ ) {
       DetId hitId = it->detId();
       for (auto hit = it->begin(); hit!=it->end(); hit++ ) {
-	if (labels[iter]=="" || (stripClusterMask->mask(hit->monoClusterRef().key())==0 || stripClusterMask->mask(hit->stereoClusterRef().key())==0) ) {//mask means skip
+	if (labels[iter]=="" || (stripClusterMask->mask(hit->monoClusterRef().key())==0 && stripClusterMask->mask(hit->stereoClusterRef().key())==0) ) {//mask means skip
 	  makeFillHisto1D<TH1F,int>("mtch","mtch",8,0,8,iter);
 	  if (hitId.subdetId() == StripSubdetector::TIB){
 	    if (TIBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("mtch_tib1","mtch_tib1",8,0,8,iter);
@@ -213,6 +231,14 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
     int rphiTot = 0;
     int rphiUnm = 0;
+    int rphiTibTot = 0;
+    int rphiTibUnm = 0;
+    int rphiTidTot = 0;
+    int rphiTidUnm = 0;
+    int rphiTobTot = 0;
+    int rphiTobUnm = 0;
+    int rphiTecTot = 0;
+    int rphiTecUnm = 0;
     for (auto it = rphiHits->begin(); it!=rphiHits->end(); it++ ) {
       DetId hitId = it->detId();
       for (auto hit = it->begin(); hit!=it->end(); hit++ ) {
@@ -221,13 +247,20 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  if (hitId.subdetId() == StripSubdetector::TIB){
 	    if (TIBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("rphi_tib1","rphi_tib1",8,0,8,iter);
 	    else if (TIBDetId(hitId).layer()==2) makeFillHisto1D<TH1F,int>("rphi_tib2","rphi_tib2",8,0,8,iter);
+	    else if (TIBDetId(hitId).layer()==3) makeFillHisto1D<TH1F,int>("rphi_tib3","rphi_tib3",8,0,8,iter);
+	    else if (TIBDetId(hitId).layer()==4) makeFillHisto1D<TH1F,int>("rphi_tib4","rphi_tib4",8,0,8,iter);
+	    rphiTibUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TOB){
 	    if (TOBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("rphi_tob1","rphi_tob1",8,0,8,iter);
 	    else if (TOBDetId(hitId).layer()==2) makeFillHisto1D<TH1F,int>("rphi_tob2","rphi_tob2",8,0,8,iter);
+	    else if (TOBDetId(hitId).layer()==3) makeFillHisto1D<TH1F,int>("rphi_tob3","rphi_tob3",8,0,8,iter);
+	    else if (TOBDetId(hitId).layer()==4) makeFillHisto1D<TH1F,int>("rphi_tob4","rphi_tob4",8,0,8,iter);
+	    rphiTobUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TID) {
 	    if (TIDDetId(hitId).wheel()==1) makeFillHisto1D<TH1F,int>("rphi_tid1","rphi_tid1",8,0,8,iter);
 	    else if (TIDDetId(hitId).wheel()==2) makeFillHisto1D<TH1F,int>("rphi_tid2","rphi_tid2",8,0,8,iter);
 	    else if (TIDDetId(hitId).wheel()==3) makeFillHisto1D<TH1F,int>("rphi_tid3","rphi_tid3",8,0,8,iter);	      
+	    rphiTidUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TEC) {
 	    if (TECDetId(hitId).wheel()==1) makeFillHisto1D<TH1F,int>("rphi_tec1","rphi_tec1",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==2) makeFillHisto1D<TH1F,int>("rphi_tec2","rphi_tec2",8,0,8,iter);
@@ -238,15 +271,28 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	    else if (TECDetId(hitId).wheel()==7) makeFillHisto1D<TH1F,int>("rphi_tec7","rphi_tec7",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==8) makeFillHisto1D<TH1F,int>("rphi_tec8","rphi_tec8",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==9) makeFillHisto1D<TH1F,int>("rphi_tec9","rphi_tec9",8,0,8,iter);	      
+	    rphiTecUnm++;
 	  }
 	  rphiUnm++;
 	}
 	rphiTot++;
+	if (hitId.subdetId() == StripSubdetector::TIB) rphiTibTot++;
+	else if (hitId.subdetId() == StripSubdetector::TOB) rphiTobTot++;
+	else if (hitId.subdetId() == StripSubdetector::TID) rphiTidTot++;
+	else rphiTecTot++;
       }
     }
     //std::cout << "strip rphi hits:" << rphiTot  << " " << rphiUnm << std::endl;
     makeFillHisto1D<TH1F,int>(Form("nrphi_tot_it%i",iter),Form("nrphi_tot_it%i",iter),100,0,100000,rphiTot);
     makeFillHisto1D<TH1F,int>(Form("nrphi_unm_it%i",iter),Form("nrphi_unm_it%i",iter),100,0,100000,rphiUnm);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tib_tot_it%i",iter),Form("nrphi_tib_tot_it%i",iter),100,0,100000,rphiTibTot);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tib_unm_it%i",iter),Form("nrphi_tib_unm_it%i",iter),100,0,100000,rphiTibUnm);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tob_tot_it%i",iter),Form("nrphi_tob_tot_it%i",iter),100,0,100000,rphiTobTot);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tob_unm_it%i",iter),Form("nrphi_tob_unm_it%i",iter),100,0,100000,rphiTobUnm);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tid_tot_it%i",iter),Form("nrphi_tid_tot_it%i",iter),100,0,100000,rphiTidTot);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tid_unm_it%i",iter),Form("nrphi_tid_unm_it%i",iter),100,0,100000,rphiTidUnm);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tec_tot_it%i",iter),Form("nrphi_tec_tot_it%i",iter),100,0,100000,rphiTecTot);
+    makeFillHisto1D<TH1F,int>(Form("nrphi_tec_unm_it%i",iter),Form("nrphi_tec_unm_it%i",iter),100,0,100000,rphiTecUnm);
     
     int rphiuTot = 0;
     int rphiuUnm = 0;
@@ -287,6 +333,14 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
     int stereoTot = 0;
     int stereoUnm = 0;
+    int stereoTibTot = 0;
+    int stereoTibUnm = 0;
+    int stereoTidTot = 0;
+    int stereoTidUnm = 0;
+    int stereoTobTot = 0;
+    int stereoTobUnm = 0;
+    int stereoTecTot = 0;
+    int stereoTecUnm = 0;
     for (auto it = stereoHits->begin(); it!=stereoHits->end(); it++ ) {
       DetId hitId = it->detId();
       for (auto hit = it->begin(); hit!=it->end(); hit++ ) {
@@ -295,13 +349,16 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  if (hitId.subdetId() == StripSubdetector::TIB){
 	    if (TIBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("stereo_tib1","stereo_tib1",8,0,8,iter);
 	    else if (TIBDetId(hitId).layer()==2) makeFillHisto1D<TH1F,int>("stereo_tib2","stereo_tib2",8,0,8,iter);
+	    stereoTibUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TOB){
 	    if (TOBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("stereo_tob1","stereo_tob1",8,0,8,iter);
 	    else if (TOBDetId(hitId).layer()==2) makeFillHisto1D<TH1F,int>("stereo_tob2","stereo_tob2",8,0,8,iter);
+	    stereoTobUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TID) {
 	    if (TIDDetId(hitId).wheel()==1) makeFillHisto1D<TH1F,int>("stereo_tid1","stereo_tid1",8,0,8,iter);
 	    else if (TIDDetId(hitId).wheel()==2) makeFillHisto1D<TH1F,int>("stereo_tid2","stereo_tid2",8,0,8,iter);
 	    else if (TIDDetId(hitId).wheel()==3) makeFillHisto1D<TH1F,int>("stereo_tid3","stereo_tid3",8,0,8,iter);	      
+	    stereoTidUnm++;
 	  } else if (hitId.subdetId() == StripSubdetector::TEC) {
 	    if (TECDetId(hitId).wheel()==1) makeFillHisto1D<TH1F,int>("stereo_tec1","stereo_tec1",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==2) makeFillHisto1D<TH1F,int>("stereo_tec2","stereo_tec2",8,0,8,iter);
@@ -312,15 +369,30 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	    else if (TECDetId(hitId).wheel()==7) makeFillHisto1D<TH1F,int>("stereo_tec7","stereo_tec7",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==8) makeFillHisto1D<TH1F,int>("stereo_tec8","stereo_tec8",8,0,8,iter);
 	    else if (TECDetId(hitId).wheel()==9) makeFillHisto1D<TH1F,int>("stereo_tec9","stereo_tec9",8,0,8,iter);	      
+	    stereoTecUnm++;
 	  }
 	  stereoUnm++;
 	}
 	stereoTot++;
+	if (hitId.subdetId() == StripSubdetector::TIB) stereoTibTot++;
+	else if (hitId.subdetId() == StripSubdetector::TOB) stereoTobTot++;
+	else if (hitId.subdetId() == StripSubdetector::TID) stereoTidTot++;
+	else stereoTecTot++;
       }
     }
     //std::cout << "strip stereo hits:" << stereoTot  << " " << stereoUnm << std::endl;
     makeFillHisto1D<TH1F,int>(Form("nstereo_tot_it%i",iter),Form("nstereo_tot_it%i",iter),100,0,100000,stereoTot);
     makeFillHisto1D<TH1F,int>(Form("nstereo_unm_it%i",iter),Form("nstereo_unm_it%i",iter),100,0,100000,stereoUnm);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tot_it%i",iter),Form("nstereo_tot_it%i",iter),100,0,100000,stereoTot);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_unm_it%i",iter),Form("nstereo_unm_it%i",iter),100,0,100000,stereoUnm);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tib_tot_it%i",iter),Form("nstereo_tib_tot_it%i",iter),100,0,100000,stereoTibTot);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tib_unm_it%i",iter),Form("nstereo_tib_unm_it%i",iter),100,0,100000,stereoTibUnm);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tob_tot_it%i",iter),Form("nstereo_tob_tot_it%i",iter),100,0,100000,stereoTobTot);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tob_unm_it%i",iter),Form("nstereo_tob_unm_it%i",iter),100,0,100000,stereoTobUnm);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tid_tot_it%i",iter),Form("nstereo_tid_tot_it%i",iter),100,0,100000,stereoTidTot);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tid_unm_it%i",iter),Form("nstereo_tid_unm_it%i",iter),100,0,100000,stereoTidUnm);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tec_tot_it%i",iter),Form("nstereo_tec_tot_it%i",iter),100,0,100000,stereoTecTot);
+    makeFillHisto1D<TH1F,int>(Form("nstereo_tec_unm_it%i",iter),Form("nstereo_tec_unm_it%i",iter),100,0,100000,stereoTecUnm);
     
     int stereouTot = 0;
     int stereouUnm = 0;
@@ -361,6 +433,10 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
     int pixelTot = 0;
     int pixelUnm = 0;
+    int pixelBarTot = 0;
+    int pixelBarUnm = 0;
+    int pixelFwdTot = 0;
+    int pixelFwdUnm = 0;
     for (auto it = pixelHits->begin(); it!=pixelHits->end(); it++ ) {
       DetId hitId = it->detId();
       for (auto hit = it->begin(); hit!=it->end(); hit++ ) {
@@ -372,18 +448,26 @@ void HitPerIter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	    if (PXBDetId(hitId).layer()==1) makeFillHisto1D<TH1F,int>("pixel_pxb1","pixel_pxb1",8,0,8,iter);
 	    else if (PXBDetId(hitId).layer()==2) makeFillHisto1D<TH1F,int>("pixel_pxb2","pixel_pxb2",8,0,8,iter);
 	    else if (PXBDetId(hitId).layer()==3) makeFillHisto1D<TH1F,int>("pixel_pxb3","pixel_pxb3",8,0,8,iter);
+	    pixelBarUnm++;
 	  } else if (hitId.subdetId() == (int) PixelSubdetector::PixelEndcap ) {
 	    if (PXFDetId(hitId).disk()==1) makeFillHisto1D<TH1F,int>("pixel_pxf1","pixel_pxf1",8,0,8,iter);
 	    else if (PXFDetId(hitId).disk()==2) makeFillHisto1D<TH1F,int>("pixel_pxf2","pixel_pxf2",8,0,8,iter);
+	    pixelFwdUnm++;
 	  }
 	  pixelUnm++;
 	}
 	pixelTot++;
+	if (hitId.subdetId() == (int) PixelSubdetector::PixelBarrel ) pixelBarTot++;
+	else pixelFwdTot++;
       }
     }
     //std::cout << "pixel hits:" << pixelTot  << " " << pixelUnm << std::endl;
     makeFillHisto1D<TH1F,int>(Form("npixel_tot_it%i",iter),Form("npixel_tot_it%i",iter),100,0,10000,pixelTot);
     makeFillHisto1D<TH1F,int>(Form("npixel_unm_it%i",iter),Form("npixel_unm_it%i",iter),100,0,10000,pixelUnm);
+    makeFillHisto1D<TH1F,int>(Form("npixelb_tot_it%i",iter),Form("npixelb_tot_it%i",iter),100,0,10000,pixelBarTot);
+    makeFillHisto1D<TH1F,int>(Form("npixelb_unm_it%i",iter),Form("npixelb_unm_it%i",iter),100,0,10000,pixelBarUnm);
+    makeFillHisto1D<TH1F,int>(Form("npixelf_tot_it%i",iter),Form("npixelf_tot_it%i",iter),100,0,10000,pixelFwdTot);
+    makeFillHisto1D<TH1F,int>(Form("npixelf_unm_it%i",iter),Form("npixelf_unm_it%i",iter),100,0,10000,pixelFwdUnm);
     
 
   }
