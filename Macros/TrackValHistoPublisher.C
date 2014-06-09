@@ -11,7 +11,7 @@ root -b -q TrackValHistoPublisher.C\(\"mtv_test_pu20.root\",\"cutsReco\",\"mtv_d
 void TrackValHistoPublisher(TString dir="plots_def_vs_test",
 			    char* newFile="trackValid.root",char* newLabel="stripTripletStepHP", 
 			    char* refFile="trackValid.root",char* refLabel="stripPairStepHP",
-			    int newColor = kRed, int refColor = kBlack,
+			    int newMarker = 20, int newColor = kRed, int refMarker = 21, int refColor = kBlack,
 			    float MAXEFF=1.,float MAXFAKE=1.,float MAXDUPL=1.)
 {
   //gROOT->ProcessLine(".x HistoCompare_Tracks.C");
@@ -83,8 +83,12 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
  //TString collname1=rl->At(posRef)->GetName(); 
  //HistoCompare_Tracks * myPV = new HistoCompare_Tracks();
 
- TString newLabelLegend = isPLS1_new ? TString(newLabel)+" PLS1 New" : TString(newFile).ReplaceAll(".root","")+" "+TString(newLabel)+" New";
- TString refLabelLegend = isPLS1_old ? TString(refLabel)+" PLS1 Ref" : TString(refFile).ReplaceAll(".root","")+" "+TString(refLabel)+" Ref";
+ TString newLabelLegend = isPLS1_new ? TString(newLabel)+" PLS1 New" : TString(newFile).ReplaceAll(".root","");//+" "+TString(newLabel)+" New";
+ TString refLabelLegend = isPLS1_old ? TString(refLabel)+" PLS1 Ref" : TString(refFile).ReplaceAll(".root","");//+" "+TString(refLabel)+" Ref";
+ newLabelLegend = newLabelLegend.ReplaceAll("multitrackValidator_","");
+ newLabelLegend = newLabelLegend.ReplaceAll("_"," ");
+ refLabelLegend = refLabelLegend.ReplaceAll("multitrackValidator_","");
+ refLabelLegend = refLabelLegend.ReplaceAll("_"," ");
 
  TCanvas *canvas;
 
@@ -202,7 +206,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
 		te,"UU",-1, 1, false, 0xC);
 
    canvas->cd();
@@ -331,7 +335,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
    
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
         te,"UU",-1, 1, false, 0xC);
 
    canvas->cd();
@@ -433,7 +437,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
         te,"UU",-1, 1, false, 2);
 
    canvas->cd();
@@ -489,10 +493,14 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    sdir->GetObject(collname2+"/num_simul_pT",sh3);
    rdir->GetObject(collname1+"/num_reco_pT",rh4);
    sdir->GetObject(collname2+"/num_reco_pT",sh4);
-   rdir->GetObject(collname1+"/missing_inner_layers",rh5);
-   sdir->GetObject(collname2+"/missing_inner_layers",sh5);
-   rdir->GetObject(collname1+"/missing_outer_layers",rh6);
-   sdir->GetObject(collname2+"/missing_outer_layers",sh6);
+   rdir->GetObject(collname1+"/h_algo",rh5);
+   sdir->GetObject(collname2+"/h_algo",sh5);
+   rdir->GetObject(collname1+"/nlosthits_vs_eta_pfx",rh6);
+   sdir->GetObject(collname2+"/nlosthits_vs_eta_pfx",sh6);
+   // rdir->GetObject(collname1+"/missing_inner_layers",rh5);
+   // sdir->GetObject(collname2+"/missing_inner_layers",sh5);
+   // rdir->GetObject(collname1+"/missing_outer_layers",rh6);
+   // sdir->GetObject(collname2+"/missing_outer_layers",sh6);
 
    canvas = new TCanvas("Tracks1","Tracks: hits and Pt",1000,1400);
 
@@ -515,13 +523,20 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
 //    NormalizeHistograms(rh5,sh5);
 //    NormalizeHistograms(rh6,sh6);
 
-   plot6histos(refColor,newColor,canvas,
+   rh5->GetXaxis()->SetRangeUser(0,11);
+   sh5->GetXaxis()->SetRangeUser(0,11);
+
+
+   plot6histos(refMarker,newMarker,refColor,newColor,canvas,
                sh5,rh5,sh6,rh6,
                sh1,rh1,sh2,rh2,
                sh3,rh3,sh4,rh4,
                te,"UU",-1);
 
    canvas->cd();
+
+   TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
+   TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
    //l = new TLegend(0.20,0.49,0.90,0.54);
    l = new TLegend(0.10,0.64,0.90,0.68);
@@ -613,7 +628,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[4]={rh1,rh2,rh3,rh4};
    TH1 * s[4]={sh1,sh2,sh3,sh4};
      
-   plot4histos(refColor,newColor,canvas,
+   plot4histos(refMarker,newMarker,refColor,newColor,canvas,
 	       sh1,rh1,sh2,rh2,
 	       sh3,rh3,sh4,rh4,    
 	       te,"UU",-1);
@@ -699,7 +714,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
-   plotPulls(refColor,newColor,canvas,
+   plotPulls(refMarker,newMarker,refColor,newColor,canvas,
 	     sh1,rh1,sh2,rh2,
 	     sh3,rh3,sh4,rh4,
 	     sh5,rh5,sh6,rh6,
@@ -767,7 +782,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
 
    canvas = new TCanvas("Tracks7","Tracks: Dxy, Dz, Theta resolution",750,1050);
 
-   plotResolutions(refColor,newColor,canvas,
+   plotResolutions(refMarker,newMarker,refColor,newColor,canvas,
 		   sh1_2,rh1_2,sh2_2,rh2_2,
 		   sh3_2,rh3_2,sh4_2,rh4_2,
 		   sh5_2,rh5_2,
@@ -969,7 +984,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
 
    canvas = new TCanvas("Tracks7b","Tracks: Dxy, Dz, Theta resolution",750,1050);
 
-   plotResolutions(refColor,newColor,canvas,
+   plotResolutions(refMarker,newMarker,refColor,newColor,canvas,
 		   sh1_2,rh1_2,sh2_2,rh2_2,
 		   sh3_2,rh3_2,sh4_2,rh4_2,
 		   sh5_2,rh5_2,
@@ -1070,7 +1085,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
 		te,"UU",-1);
 
    canvas->cd();
@@ -1176,7 +1191,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
    TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
 		te,"UU",-1);
 
    canvas->cd();
@@ -1321,7 +1336,7 @@ void TrackValHistoPublisher(TString dir="plots_def_vs_test",
    TH1 * r[6]={rh1,rh2,new TH1F("dm1","dm1",2,0,1),new TH1F("dm2","dm2",2,0,1),new TH1F("dm3","dm3",2,0,1),new TH1F("dm4","dm4",2,0,1)};
    TH1 * s[6]={sh1,sh2,new TH1F("dm5","dm5",2,0,1),new TH1F("dm6","dm6",2,0,1),new TH1F("dm7","dm7",2,0,1),new TH1F("dm8","dm8",2,0,1)};
 
-   plotBuilding(refColor,newColor,canvas,s, r,6,
+   plotBuilding(refMarker,newMarker,refColor,newColor,canvas,s, r,6,
 		te,"UU",-1);
 
    canvas->cd();
@@ -1579,15 +1594,15 @@ void NormalizeHistograms(TH1* h1, TH1* h2)
 
 
 
-void plot4histos(int refColor, int newColor, TCanvas *canvas, 
+void plot4histos(int refMarker, int newMarker, int refColor, int newColor, TCanvas *canvas, 
 		 TH1 *s1,TH1 *r1, TH1 *s2,TH1 *r2, 
 		 TH1 *s3,TH1 *r3, TH1 *s4,TH1 *r4,
 		 TText* te,
 		 char * option, double startingY, double startingX = .1,bool fit = false, bool logx=false){
   canvas->Divide(2,2);
 
-  s1->SetMarkerStyle(20);
-  r1->SetMarkerStyle(21);
+  s1->SetMarkerStyle(newMarker);
+  r1->SetMarkerStyle(refMarker);
   s1->SetMarkerColor(newColor);
   r1->SetMarkerColor(refColor);
   s1->SetMarkerSize(0.7);
@@ -1597,8 +1612,8 @@ void plot4histos(int refColor, int newColor, TCanvas *canvas,
   s1->SetLineWidth(2);
   r1->SetLineWidth(2);
 
-  s2->SetMarkerStyle(20);
-  r2->SetMarkerStyle(21);
+  s2->SetMarkerStyle(newMarker);
+  r2->SetMarkerStyle(refMarker);
   s2->SetMarkerColor(newColor);
   r2->SetMarkerColor(refColor);
   s2->SetMarkerSize(0.1);
@@ -1608,8 +1623,8 @@ void plot4histos(int refColor, int newColor, TCanvas *canvas,
   s2->SetLineWidth(2);
   r2->SetLineWidth(2);
 
-  s3->SetMarkerStyle(20);
-  r3->SetMarkerStyle(21);
+  s3->SetMarkerStyle(newMarker);
+  r3->SetMarkerStyle(refMarker);
   s3->SetMarkerColor(newColor);
   r3->SetMarkerColor(refColor);
   s3->SetMarkerSize(0.7);
@@ -1619,8 +1634,8 @@ void plot4histos(int refColor, int newColor, TCanvas *canvas,
   r3->SetLineWidth(2);
   s3->SetLineWidth(2);
 
-  s4->SetMarkerStyle(20);
-  r4->SetMarkerStyle(21);
+  s4->SetMarkerStyle(newMarker);
+  r4->SetMarkerStyle(refMarker);
   s4->SetMarkerColor(newColor);
   r4->SetMarkerColor(refColor);
   s4->SetMarkerSize(0.7);
@@ -1655,15 +1670,15 @@ void plot4histos(int refColor, int newColor, TCanvas *canvas,
 
 }
 
-void plot6histos(int refColor, int newColor,TCanvas *canvas,
+void plot6histos(int refMarker, int newMarker, int refColor, int newColor,TCanvas *canvas,
 		 TH1 *s1,TH1 *r1, TH1 *s2,TH1 *r2,
 		 TH1 *s3,TH1 *r3, TH1 *s4,TH1 *r4,
 		 TH1 *s5,TH1 *r5, TH1 *s6,TH1 *r6,
 		 TText* te, char * option, double startingY, double startingX = .1,bool fit = false){
   canvas->Divide(2,3);
 
-  s1->SetMarkerStyle(20);
-  r1->SetMarkerStyle(21);
+  s1->SetMarkerStyle(newMarker);
+  r1->SetMarkerStyle(refMarker);
   s1->SetMarkerColor(newColor);
   r1->SetMarkerColor(refColor);
   s1->SetMarkerSize(0.7);
@@ -1673,8 +1688,8 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
   s1->SetLineWidth(2);
   r1->SetLineWidth(2);
 
-  s2->SetMarkerStyle(20);
-  r2->SetMarkerStyle(21);
+  s2->SetMarkerStyle(newMarker);
+  r2->SetMarkerStyle(refMarker);
   s2->SetMarkerColor(newColor);
   r2->SetMarkerColor(refColor);
   s2->SetMarkerSize(0.1);
@@ -1684,8 +1699,8 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
   s2->SetLineWidth(2);
   r2->SetLineWidth(2);
 
-  s3->SetMarkerStyle(20);
-  r3->SetMarkerStyle(21);
+  s3->SetMarkerStyle(newMarker);
+  r3->SetMarkerStyle(refMarker);
   s3->SetMarkerColor(newColor);
   r3->SetMarkerColor(refColor);
   s3->SetMarkerSize(0.7);
@@ -1695,8 +1710,8 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
   r3->SetLineWidth(2);
   s3->SetLineWidth(2);
 
-  s4->SetMarkerStyle(20);
-  r4->SetMarkerStyle(21);
+  s4->SetMarkerStyle(newMarker);
+  r4->SetMarkerStyle(refMarker);
   s4->SetMarkerColor(newColor);
   r4->SetMarkerColor(refColor);
   s4->SetMarkerSize(0.7);
@@ -1706,8 +1721,8 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
   r4->SetLineWidth(2);
   s4->SetLineWidth(2);
 
-  s5->SetMarkerStyle(20);
-  r5->SetMarkerStyle(21);
+  s5->SetMarkerStyle(newMarker);
+  r5->SetMarkerStyle(refMarker);
   s5->SetMarkerColor(newColor);
   r5->SetMarkerColor(refColor);
   s5->SetMarkerSize(0.7);
@@ -1717,8 +1732,8 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
   r5->SetLineWidth(2);
   s5->SetLineWidth(2);
 
-  s6->SetMarkerStyle(20);
-  r6->SetMarkerStyle(21);
+  s6->SetMarkerStyle(newMarker);
+  r6->SetMarkerStyle(refMarker);
   s6->SetMarkerColor(newColor);
   r6->SetMarkerColor(refColor);
   s6->SetMarkerSize(0.7);
@@ -1730,9 +1745,10 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
 
   //setStats(r1,s1, startingY, startingX, fit);
   canvas->cd(1);
-  setStats(s1,r1, 0.6, 0.65, false);
-  r1->Draw();
-  s1->Draw("sames");
+  setStats(s1,r1, -1*0.6, 0.65, false);//fixme -1*
+  gPad->SetLogy();
+  r1->Draw("PH");
+  s1->Draw("PHsames");
 
   canvas->cd(2);
   setStats(s2,r2, 0.6, 0.65, false);
@@ -1763,12 +1779,12 @@ void plot6histos(int refColor, int newColor,TCanvas *canvas,
 
 }
 
-void plotBuilding(int refColor, int newColor, TCanvas *canvas, TH1 **s, TH1 **r, int n,TText* te,
+void plotBuilding(int refMarker, int newMarker, int refColor, int newColor, TCanvas *canvas, TH1 **s, TH1 **r, int n,TText* te,
 		  char * option, double startingY, double startingX = .1,bool fit = false, unsigned int logx=0){
   canvas->Divide(2,(n+1)/2); //this should work also for odd n
   for(int i=0; i<n;i++){
-    s[i]->SetMarkerStyle(20);
-    r[i]->SetMarkerStyle(21);
+    s[i]->SetMarkerStyle(newMarker);
+    r[i]->SetMarkerStyle(refMarker);
     s[i]->SetMarkerColor(newColor);
     r[i]->SetMarkerColor(refColor);
     s[i]->SetMarkerSize(0.7);
@@ -1821,7 +1837,7 @@ void plotBuilding(int refColor, int newColor, TCanvas *canvas, TH1 **s, TH1 **r,
 //   s6->Draw("sames");
 }
 
-void plotPulls(int refColor, int newColor, TCanvas *canvas, 
+void plotPulls(int refMarker, int newMarker, int refColor, int newColor, TCanvas *canvas, 
 	       TH1 *s1,TH1 *r1, TH1 *s2,TH1 *r2, 
 	       TH1 *s3,TH1 *r3, TH1 *s4,TH1 *r4,
 	       TH1 *s5,TH1 *r5,TH1 *s6,TH1 *r6,
@@ -1829,8 +1845,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
 	       char * option, double startingY, double startingX = .1,bool fit = false){
   canvas->Divide(2,3);
 
-  s1->SetMarkerStyle(20);
-  r1->SetMarkerStyle(21);
+  s1->SetMarkerStyle(newMarker);
+  r1->SetMarkerStyle(refMarker);
   s1->SetMarkerColor(newColor);
   r1->SetMarkerColor(refColor);
   s1->SetMarkerSize(0.7);
@@ -1841,8 +1857,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
   r1->SetLineWidth(2);
 
 
-  s2->SetMarkerStyle(20);
-  r2->SetMarkerStyle(21);
+  s2->SetMarkerStyle(newMarker);
+  r2->SetMarkerStyle(refMarker);
   s2->SetMarkerColor(newColor);
   r2->SetMarkerColor(refColor);
   s2->SetMarkerSize(0.7);
@@ -1852,8 +1868,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
   s2->SetLineWidth(2);
   r2->SetLineWidth(2);
 
-  s3->SetMarkerStyle(20);
-  r3->SetMarkerStyle(21);
+  s3->SetMarkerStyle(newMarker);
+  r3->SetMarkerStyle(refMarker);
   s3->SetMarkerColor(newColor);
   r3->SetMarkerColor(refColor);
   s3->SetMarkerSize(0.7);
@@ -1863,8 +1879,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
   s3->SetLineWidth(2);
   r3->SetLineWidth(2);
 
-  s4->SetMarkerStyle(20);
-  r4->SetMarkerStyle(21);
+  s4->SetMarkerStyle(newMarker);
+  r4->SetMarkerStyle(refMarker);
   s4->SetMarkerColor(newColor);
   r4->SetMarkerColor(refColor);
   s4->SetMarkerSize(0.7);
@@ -1875,8 +1891,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
   r4->SetLineWidth(2);
 
 
-  s5->SetMarkerStyle(20);
-  r5->SetMarkerStyle(21);
+  s5->SetMarkerStyle(newMarker);
+  r5->SetMarkerStyle(refMarker);
   s5->SetMarkerColor(newColor);
   r5->SetMarkerColor(refColor);
   s5->SetMarkerSize(0.7);
@@ -1887,8 +1903,8 @@ void plotPulls(int refColor, int newColor, TCanvas *canvas,
   r5->SetLineWidth(2);
 
 
-  s6->SetMarkerStyle(20);
-  r6->SetMarkerStyle(21);
+  s6->SetMarkerStyle(newMarker);
+  r6->SetMarkerStyle(refMarker);
   s6->SetMarkerColor(newColor);
   r6->SetMarkerColor(refColor);
   s6->SetMarkerSize(0.7);
@@ -1977,7 +1993,7 @@ TH1* getEfficiency(TH1* numer1, TH1* numer2, TH1* denom, const char* name, const
 }
 
 
-void plotResolutions(int refColor, int newColor, TCanvas *canvas, 
+void plotResolutions(int refMarker, int newMarker, int refColor, int newColor, TCanvas *canvas, 
 		     TH2F *s1_2,TH2F *r1_2, TH2F *s2_2,TH2F *r2_2, 
 		     TH2F *s3_2,TH2F *r3_2, TH2F *s4_2,TH2F *r4_2,
 		     TH2F *s5_2,TH2F *r5_2,
@@ -2070,8 +2086,8 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
   //TH1* r4_sigma = r1_2_2->Clone("s4_sigma");
   //TH1* r5_sigma = r1_2_2->Clone("s5_sigma");
 
-  s1_sigma->SetMarkerStyle(20);
-  r1_sigma->SetMarkerStyle(21);
+  s1_sigma->SetMarkerStyle(newMarker);
+  r1_sigma->SetMarkerStyle(refMarker);
   s1_sigma->SetMarkerColor(newColor);
   r1_sigma->SetMarkerColor(refColor);
   s1_sigma->SetMarkerSize(0.7);
@@ -2079,8 +2095,8 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
   s1_sigma->SetLineColor(1);
   r1_sigma->SetLineColor(1);
 
-  s2_sigma->SetMarkerStyle(20);
-  r2_sigma->SetMarkerStyle(21);
+  s2_sigma->SetMarkerStyle(newMarker);
+  r2_sigma->SetMarkerStyle(refMarker);
   s2_sigma->SetMarkerColor(newColor);
   r2_sigma->SetMarkerColor(refColor);
   s2_sigma->SetMarkerSize(0.7);
@@ -2088,8 +2104,8 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
   s2_sigma->SetLineColor(1);
   r2_sigma->SetLineColor(1);
 
-  s3_sigma->SetMarkerStyle(20);
-  r3_sigma->SetMarkerStyle(21);
+  s3_sigma->SetMarkerStyle(newMarker);
+  r3_sigma->SetMarkerStyle(refMarker);
   s3_sigma->SetMarkerColor(newColor);
   r3_sigma->SetMarkerColor(refColor);
   s3_sigma->SetMarkerSize(0.7);
@@ -2097,8 +2113,8 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
   s3_sigma->SetLineColor(1);
   r3_sigma->SetLineColor(1);
 
-  s4_sigma->SetMarkerStyle(20);
-  r4_sigma->SetMarkerStyle(21);
+  s4_sigma->SetMarkerStyle(newMarker);
+  r4_sigma->SetMarkerStyle(refMarker);
   s4_sigma->SetMarkerColor(newColor);
   r4_sigma->SetMarkerColor(refColor);
   s4_sigma->SetMarkerSize(0.7);
@@ -2107,8 +2123,8 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
   r4_sigma->SetLineColor(1);
 
 
-  s5_sigma->SetMarkerStyle(20);
-  r5_sigma->SetMarkerStyle(21);
+  s5_sigma->SetMarkerStyle(newMarker);
+  r5_sigma->SetMarkerStyle(refMarker);
   s5_sigma->SetMarkerColor(newColor);
   r5_sigma->SetMarkerColor(refColor);
   s5_sigma->SetMarkerSize(0.7);
@@ -2198,7 +2214,7 @@ void plotResolutions(int refColor, int newColor, TCanvas *canvas,
 
 }
 
-void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas, 
+void plotResolutionsDirect(int refMarker, int newMarker, int refColor, int newColor, TCanvas *canvas, 
 			   TH1 *s1,TH1 *r1, TH1 *s2,TH1 *r2, 
 			   TH1 *s3,TH1 *r3, TH1 *s4,TH1 *r4,
 			   TH1 *s5,TH1 *r5,TH1 *s6,TH1 *r6,
@@ -2206,8 +2222,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
 			   char * option, double startingY, bool logx=false, double startingX = .1,bool fit = false){
   canvas->Divide(2,3);
 
-  s1->SetMarkerStyle(20);
-  r1->SetMarkerStyle(21);
+  s1->SetMarkerStyle(newMarker);
+  r1->SetMarkerStyle(refMarker);
   s1->SetMarkerColor(newColor);
   r1->SetMarkerColor(refColor);
   s1->SetMarkerSize(0.7);
@@ -2215,8 +2231,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
   s1->SetLineColor(1);
   r1->SetLineColor(1);
 
-  s2->SetMarkerStyle(20);
-  r2->SetMarkerStyle(21);
+  s2->SetMarkerStyle(newMarker);
+  r2->SetMarkerStyle(refMarker);
   s2->SetMarkerColor(newColor);
   r2->SetMarkerColor(refColor);
   s2->SetMarkerSize(0.7);
@@ -2224,8 +2240,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
   s2->SetLineColor(1);
   r2->SetLineColor(1);
 
-  s3->SetMarkerStyle(20);
-  r3->SetMarkerStyle(21);
+  s3->SetMarkerStyle(newMarker);
+  r3->SetMarkerStyle(refMarker);
   s3->SetMarkerColor(newColor);
   r3->SetMarkerColor(refColor);
   s3->SetMarkerSize(0.7);
@@ -2233,8 +2249,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
   s3->SetLineColor(1);
   r3->SetLineColor(1);
 
-  s4->SetMarkerStyle(20);
-  r4->SetMarkerStyle(21);
+  s4->SetMarkerStyle(newMarker);
+  r4->SetMarkerStyle(refMarker);
   s4->SetMarkerColor(newColor);
   r4->SetMarkerColor(refColor);
   s4->SetMarkerSize(0.7);
@@ -2243,8 +2259,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
   r4->SetLineColor(1);
 
 
-  s5->SetMarkerStyle(20);
-  r5->SetMarkerStyle(21);
+  s5->SetMarkerStyle(newMarker);
+  r5->SetMarkerStyle(refMarker);
   s5->SetMarkerColor(newColor);
   r5->SetMarkerColor(refColor);
   s5->SetMarkerSize(0.7);
@@ -2252,8 +2268,8 @@ void plotResolutionsDirect(int refColor, int newColor, TCanvas *canvas,
   s5->SetLineColor(1);
   r5->SetLineColor(1);
 
-  s6->SetMarkerStyle(20);
-  r6->SetMarkerStyle(21);
+  s6->SetMarkerStyle(newMarker);
+  r6->SetMarkerStyle(refMarker);
   s6->SetMarkerColor(newColor);
   r6->SetMarkerColor(refColor);
   s6->SetMarkerSize(0.7);

@@ -31,6 +31,8 @@ process.load("Configuration.StandardSequences.RawToDigi_cff")
 process.load("Configuration.EventContent.EventContent_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.Reconstruction_cff")
+process.load("DQMServices.Components.DQMFileSaver_cfi")
+process.dqmSaver.workflow = cms.untracked.string("/My/Personal/Workflow")
 
 ### validation-specific includes
 #process.load("SimTracker.TrackAssociation.TrackAssociatorByHits_cfi")
@@ -84,7 +86,7 @@ process.clustToHits = cms.Sequence(
 )
 
 process.tracking = cms.Sequence(
-    process.trackingGlobalReco
+    process.MeasurementTrackerEvent*process.siPixelClusterShapeCache*process.trackingGlobalReco
 )
 
 process.validation = cms.Sequence(
@@ -102,8 +104,9 @@ process.val = cms.Path(
       process.cutsRecoTracks *
       process.validation
 )
+process.outputFile = cms.EndPath(process.dqmSaver)
 process.schedule = cms.Schedule(
-      process.trk,process.val
+      process.trk,process.val,process.outputFile
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
