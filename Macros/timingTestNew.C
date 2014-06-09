@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TH1.h"
 #include "TLegend.h"
+#include "TPaveText.h"
 #include <iostream>
 #include <fstream>
 
@@ -217,10 +218,10 @@ void plotOneVersion(TimeInfoAllSteps TIAS,TString file_postfix) {
   timingTestPerStep(TIAS,htime_step);
   htime_step->SetLineStyle(TIAS.style());
   htime_step->SetLineColor(TIAS.color());
-  htime_step->GetYaxis()->SetTitle("fraction of time");
+  htime_step->GetYaxis()->SetTitle("time [s]");
   TCanvas c1;
   c1.SetTicks(1,1);
-  htime_step->Scale(1./htime_step->Integral());
+  //htime_step->Scale(1./htime_step->Integral());
   htime_step->GetYaxis()->SetRangeUser(0,1.1*htime_step->GetBinContent(htime_step->GetMaximumBin()));
   htime_step->Draw("H");
   leg->Draw();
@@ -278,15 +279,15 @@ void compareTwoVersions(TimeInfoAllSteps TIAS_old, TimeInfoAllSteps TIAS_new,TSt
   timingTestPerStep(TIAS_old,htime_step_old);
   htime_step_old->SetLineStyle(TIAS_old.style());
   htime_step_old->SetLineColor(TIAS_old.color());
-  htime_step_old->GetYaxis()->SetTitle("fraction of time");
+  htime_step_old->GetYaxis()->SetTitle("time [s]");
   TH1F *htime_step_new = new TH1F("time_step_new"+file_postfix,"time_step_new",5,0,5);
   timingTestPerStep(TIAS_new,htime_step_new);
   htime_step_new->SetLineStyle(TIAS_new.style());
   htime_step_new->SetLineColor(TIAS_new.color());
   TCanvas c1;
   c1.SetTicks(1,1);
-  htime_step_old->Scale(1./htime_step_old->Integral());
-  htime_step_new->Scale(1./htime_step_new->Integral());
+  //htime_step_old->Scale(1./htime_step_old->Integral());
+  //htime_step_new->Scale(1./htime_step_new->Integral());
   htime_step_old->GetYaxis()->SetRangeUser(0,1.1*TMath::Max(htime_step_old->GetBinContent(htime_step_old->GetMaximumBin()),htime_step_new->GetBinContent(htime_step_new->GetMaximumBin())));
   htime_step_old->Draw("H");
   htime_step_new->Draw("H,same");
@@ -317,6 +318,18 @@ void compareThreeVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeIn
 
   gStyle->SetOptStat(0);
 
+  TPaveText* labelcms  = new TPaveText(0.20,0.79,0.54,0.92,"NDCBR");
+  labelcms->SetTextAlign(12);
+  labelcms->SetTextSize(0.04);
+  labelcms->SetFillColor(kWhite);  
+  labelcms->AddText("CMS Preliminary Simulation");
+  //labelcms->AddText("CMS Preliminary");
+  //labelcms->AddText("Simulation");
+  labelcms->AddText("#sqrt{s} = 8 TeV, t#bar{t}+PU");
+  labelcms->SetBorderSize(0);
+  labelcms->SetTextFont(42);
+  labelcms->SetLineWidth(2);
+
   TH1F *htime_iter_1 = new TH1F("time_iter_1"+file_postfix,"time_iter_1",8,0,8);
   timingTestPerIter(TIAS_1,htime_iter_1);
   htime_iter_1->SetLineStyle(TIAS_1.style());
@@ -329,20 +342,33 @@ void compareThreeVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeIn
   timingTestPerIter(TIAS_3,htime_iter_3);
   htime_iter_3->SetLineStyle(TIAS_3.style());
   htime_iter_3->SetLineColor(TIAS_3.color());
+  float iter_Iter0PU20 = htime_iter_1->GetBinContent(1);
+  htime_iter_1->Scale(1./iter_Iter0PU20);
+  htime_iter_2->Scale(1./iter_Iter0PU20);
+  htime_iter_3->Scale(1./iter_Iter0PU20);
   htime_iter_1->GetYaxis()->SetRangeUser(0,1.1*TMath::Max(htime_iter_1->GetBinContent(htime_iter_1->GetMaximumBin()),TMath::Max(htime_iter_2->GetBinContent(htime_iter_2->GetMaximumBin()),htime_iter_3->GetBinContent(htime_iter_3->GetMaximumBin()))));
-  TLegend* leg = new TLegend(0.1,0.91,0.9,0.99);
-  leg->SetNColumns(3);
+  TLegend* leg = new TLegend(0.2,0.59,0.45,0.79);
+  leg->SetNColumns(1);
   leg->SetFillColor(kWhite);
   leg->SetLineColor(kWhite);
+  leg->SetBorderSize(0);
+  leg->SetTextSize(0.04);
+  leg->SetTextFont(42);
   leg->AddEntry(htime_iter_1,TIAS_1.legend(),"L");
   leg->AddEntry(htime_iter_2,TIAS_2.legend(),"L");
   leg->AddEntry(htime_iter_3,TIAS_3.legend(),"L");
+  htime_iter_1->GetYaxis()->SetTitleOffset(1.2);
+  htime_iter_1->GetXaxis()->SetRangeUser(0,7);
+  htime_iter_1->GetYaxis()->SetTitle("time [1/iter0@<PU>=20]");
+  htime_iter_1->GetYaxis()->SetTitleSize(0.04);
+  htime_iter_1->GetXaxis()->SetTitleSize(0.04);
+  htime_iter_1->GetYaxis()->SetLabelSize(0.04);
   TCanvas c0;
   c0.SetTicks(1,1);
   htime_iter_1->Draw("H");
   htime_iter_2->Draw("H,same");
   htime_iter_3->Draw("H,same");
-  leg->Draw();
+  leg->Draw();labelcms->Draw();
   c0.SetGridy();
   c0.SaveAs("timingNew_iter_"+file_postfix+".png");
 
@@ -350,7 +376,7 @@ void compareThreeVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeIn
   timingTestPerStep(TIAS_1,htime_step_1);
   htime_step_1->SetLineStyle(TIAS_1.style());
   htime_step_1->SetLineColor(TIAS_1.color());
-  htime_step_1->GetYaxis()->SetTitle("fraction of time");
+  htime_step_1->GetYaxis()->SetTitle("time [1/building@<PU>=20]");
   TH1F *htime_step_2 = new TH1F("time_step_2"+file_postfix,"time_step_2",5,0,5);
   timingTestPerStep(TIAS_2,htime_step_2);
   htime_step_2->SetLineStyle(TIAS_2.style());
@@ -359,16 +385,30 @@ void compareThreeVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeIn
   timingTestPerStep(TIAS_3,htime_step_3);
   htime_step_3->SetLineStyle(TIAS_3.style());
   htime_step_3->SetLineColor(TIAS_3.color());
+  float step_BuildPU20 = htime_step_1->GetBinContent(3);
+  htime_step_1->Scale(1./step_BuildPU20);
+  htime_step_2->Scale(1./step_BuildPU20);
+  htime_step_3->Scale(1./step_BuildPU20);
+  htime_step_1->GetYaxis()->SetTitleOffset(1.2);
+  htime_step_1->GetXaxis()->SetRangeUser(0,7);
+  htime_step_1->GetYaxis()->SetTitleSize(0.04);
+  htime_step_1->GetXaxis()->SetTitleSize(0.04);
+  htime_step_1->GetYaxis()->SetLabelSize(0.04);
   TCanvas c1;
   c1.SetTicks(1,1);
-  htime_step_1->Scale(1./htime_step_1->Integral());
-  htime_step_2->Scale(1./htime_step_2->Integral());
-  htime_step_3->Scale(1./htime_step_3->Integral());
+  //htime_step_1->Scale(1./htime_step_1->Integral());
+  //htime_step_2->Scale(1./htime_step_2->Integral());
+  //htime_step_3->Scale(1./htime_step_3->Integral());
   htime_step_1->GetYaxis()->SetRangeUser(0,1.1*TMath::Max(htime_step_1->GetBinContent(htime_step_1->GetMaximumBin()),TMath::Max(htime_step_2->GetBinContent(htime_step_2->GetMaximumBin()),htime_step_3->GetBinContent(htime_step_3->GetMaximumBin()))));
+  htime_step_1->GetXaxis()->SetRangeUser(1,5);
   htime_step_1->Draw("H");
   htime_step_2->Draw("H,same");
   htime_step_3->Draw("H,same");
-  leg->Draw();
+  leg->SetX1NDC(0.60);
+  leg->SetX2NDC(0.85);
+  labelcms->SetX1NDC(0.60);
+  labelcms->SetX2NDC(0.94);
+  leg->Draw();labelcms->Draw();
   c1.SetGridy();
   c1.SaveAs("timingNew_step_"+file_postfix+".png");
 
@@ -381,15 +421,27 @@ void compareThreeVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeIn
   TH1F *htime_track_3 = (TH1F*) htime_iter_3->Clone("time_track_3"+file_postfix);
   htime_track_3->Reset();
   makeTimePerTrackPlot(htime_track_3,htime_iter_3,TIAS_3.mtvfile());
+  float track_Iter0PU20 = htime_track_1->GetBinContent(1);
+  htime_track_1->Scale(1./track_Iter0PU20);
+  htime_track_2->Scale(1./track_Iter0PU20);
+  htime_track_3->Scale(1./track_Iter0PU20);
   htime_track_1->GetYaxis()->SetRangeUser(0,1.1*TMath::Max(htime_track_1->GetBinContent(htime_track_1->GetMaximumBin()),TMath::Max(htime_track_2->GetBinContent(htime_track_2->GetMaximumBin()),htime_track_3->GetBinContent(htime_track_3->GetMaximumBin()))));
-  htime_track_1->GetYaxis()->SetTitle("time/HP track [s]");
-  htime_track_1->GetYaxis()->SetTitleOffset(1.25);
   TCanvas c2;
   c2.SetTicks(1,1);
+  htime_track_1->GetYaxis()->SetTitleOffset(1.2);
+  htime_track_1->GetXaxis()->SetRangeUser(0,7);
+  htime_track_1->GetYaxis()->SetTitle("time/track [1/iter0@<PU>=20]");
+  htime_track_1->GetYaxis()->SetTitleSize(0.04);
+  htime_track_1->GetXaxis()->SetTitleSize(0.04);
+  htime_track_1->GetYaxis()->SetLabelSize(0.04);
   htime_track_1->Draw("H");
   htime_track_2->Draw("H,same");
   htime_track_3->Draw("H,same");
-  leg->Draw();
+  leg->SetX1NDC(0.2);
+  leg->SetX2NDC(0.45);
+  labelcms->SetX1NDC(0.2);
+  labelcms->SetX2NDC(0.54);
+  leg->Draw();labelcms->Draw();
   c2.SetGridy();
   c2.SaveAs("timingNew_track_"+file_postfix+".png");
 
@@ -438,7 +490,7 @@ void compareFourVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeInf
   timingTestPerStep(TIAS_1,htime_step_1);
   htime_step_1->SetLineStyle(TIAS_1.style());
   htime_step_1->SetLineColor(TIAS_1.color());
-  htime_step_1->GetYaxis()->SetTitle("fraction of time");
+  htime_step_1->GetYaxis()->SetTitle("time [s]");
   TH1F *htime_step_2 = new TH1F("time_step_2"+file_postfix,"time_step_2",5,0,5);
   timingTestPerStep(TIAS_2,htime_step_2);
   htime_step_2->SetLineStyle(TIAS_2.style());
@@ -453,10 +505,10 @@ void compareFourVersions(TimeInfoAllSteps TIAS_1,TimeInfoAllSteps TIAS_2,TimeInf
   htime_step_4->SetLineColor(TIAS_4.color());
   TCanvas c1;
   c1.SetTicks(1,1);
-  htime_step_1->Scale(1./htime_step_1->Integral());
-  htime_step_2->Scale(1./htime_step_2->Integral());
-  htime_step_3->Scale(1./htime_step_3->Integral());
-  htime_step_4->Scale(1./htime_step_4->Integral());
+  //htime_step_1->Scale(1./htime_step_1->Integral());
+  //htime_step_2->Scale(1./htime_step_2->Integral());
+  //htime_step_3->Scale(1./htime_step_3->Integral());
+  //htime_step_4->Scale(1./htime_step_4->Integral());
   htime_step_1->GetYaxis()->SetRangeUser(0,1.1*TMath::Max(htime_step_1->GetBinContent(htime_step_1->GetMaximumBin()),TMath::Max(htime_step_2->GetBinContent(htime_step_2->GetMaximumBin()),TMath::Max(htime_step_3->GetBinContent(htime_step_3->GetMaximumBin()),htime_step_4->GetBinContent(htime_step_4->GetMaximumBin())))));
   htime_step_1->Draw("H");
   htime_step_2->Draw("H,same");
@@ -531,165 +583,23 @@ void timingTestNew() {
   //create TimeInfoAllSteps: first argument is log file, second is mtv file,
   //third is line style, fourth is color, fifth is legend label
 
-  TimeInfoAllSteps TIAS_default("log_default_25ns.log","mtv_default_25ns.root",1,kBlack,"default");
-  getAllTimeInfo(TIAS_default);
+  TimeInfoAllSteps TIAS_pu20("step3_20PU50ns_RAW2DIGI_L1Reco_RECO.log","mtv_20PU50ns.root",3,kBlack,"<PU>=20");
+  getAllTimeInfo(TIAS_pu20);
+  //plotOneVersion(TIAS_pu20,"pu20");
 
-  TimeInfoAllSteps TIAS_triplets("log_triplets_25ns.log","mtv_triplets_25ns.root",1,kRed,"triplets");
-  getAllTimeInfo(TIAS_triplets);
+  TimeInfoAllSteps TIAS_pu40("step3_40PU50ns_RAW2DIGI_L1Reco_RECO.log","mtv_40PU50ns.root",1,kBlack,"<PU>=40");
+  getAllTimeInfo(TIAS_pu40);
+  //plotOneVersion(TIAS_pu40,"pu40");
 
-  TimeInfoAllSteps TIAS_triplets_mtec("log_triplets_mtec_25ns.log","mtv_triplets_mtec_25ns.root",1,kBlue,"triplets_mtec");
-  getAllTimeInfo(TIAS_triplets_mtec);
+  TimeInfoAllSteps TIAS_pu60("step3_60PU50ns_RAW2DIGI_L1Reco_RECO.log","mtv_60PU50ns.root",7,kBlack,"<PU>=60");
+  getAllTimeInfo(TIAS_pu60);
+  //plotOneVersion(TIAS_pu60,"pu60");
 
-  TimeInfoAllSteps TIAS_triplets_mtec_ring3("log_triplets_mtec_ring3_25ns.log","mtv_triplets_mtec_ring3_25ns.root",1,kGreen,"triplets_mtec_ring3");
-  getAllTimeInfo(TIAS_triplets_mtec_ring3);
+  compareThreeVersions(TIAS_pu20,TIAS_pu40,TIAS_pu60,"comp_pu_20_40_60");
 
-  TimeInfoAllSteps TIAS_triplets_mtec_ring3_tobtec("log_triplets_mtec_ring3_tobtec_25ns.log","mtv_triplets_mtec_ring3_tobtec_25ns.root",1,kMagenta,"triplets_mtec_ring3_tobtec");
-  getAllTimeInfo(TIAS_triplets_mtec_ring3_tobtec);
+//   compareTwoVersions(TIAS_default,TIAS_triplets,"comp2_def_tripl");
+//   compareThreeVersions(TIAS_default,TIAS_triplets,TIAS_triplets_mtec,"comp3_def_tripl_mtec");
+//   compareTwoVersions(TIAS_triplets_mtec,TIAS_triplets_mtec_ring3,"comp2_mtec_mtecr3");
 
-  plotOneVersion(TIAS_default,"default");
-  compareTwoVersions(TIAS_default,TIAS_triplets,"comp2_def_tripl");
-  compareThreeVersions(TIAS_default,TIAS_triplets,TIAS_triplets_mtec,"comp3_def_tripl_mtec");
-  compareTwoVersions(TIAS_triplets_mtec,TIAS_triplets_mtec_ring3,"comp2_mtec_mtecr3");
-
-  compareThreeVersions(TIAS_default,TIAS_triplets_mtec_ring3,TIAS_triplets_mtec_ring3_tobtec,"comp3_def_mtecr3_mtecr3tobtec");
-
-//   TimeInfoAllSteps TIAS_default_pu20(4,kBlack);
-//   getAllTimeInfo("log_default_pu20.log", TIAS_default_pu20);
-//   TimeInfoAllSteps TIAS_default_pu40(1,kBlack);
-//   getAllTimeInfo("log_default_pu40.log", TIAS_default_pu40);
-//   TimeInfoAllSteps TIAS_default_pu60(7,kBlack);
-//   getAllTimeInfo("log_default_pu60.log", TIAS_default_pu60);
-
-//   makeIterPlotVsPU(TIAS_default_pu20,TIAS_default_pu40,TIAS_default_pu60);
-
-//   TimeInfoAllSteps TIAS_def_pu20(4,kBlack);
-//   getAllTimeInfo("def.log", TIAS_def_pu20);
-//   TimeInfoAllSteps TIAS_new_pu20(5,kRed);
-//   getAllTimeInfo("new2.log", TIAS_new_pu20);
-//   compareTwoVersions(TIAS_def_pu20,TIAS_new_pu20,"mtv_pu20_def.root","mtv_pu20_new2.root",
-// 		     "Def TTbar + <PU>=20","New TTbar + <PU>=20","PU20");
-  
-  /*
-  TimeInfoAllSteps TIAS_test_barrel_pu20(4,kBlue);
-  getAllTimeInfo("log_test_barrel_pu20.log", TIAS_test_barrel_pu20);
-  TimeInfoAllSteps TIAS_test_barrel_pu40(1,kBlue);
-  getAllTimeInfo("log_test_barrel_pu40.log", TIAS_test_barrel_pu40); 
-  TimeInfoAllSteps TIAS_test_barrel_pu60(7,kBlue);
-  getAllTimeInfo("log_test_barrel_pu60.log", TIAS_test_barrel_pu60);
-
-  TimeInfoAllSteps TIAS_test_pu20(4,kRed);
-  getAllTimeInfo("log_test_pu20.log", TIAS_test_pu20);
-  TimeInfoAllSteps TIAS_test_pu40(1,kRed);
-  getAllTimeInfo("log_test_pu40.log", TIAS_test_pu40);
-  TimeInfoAllSteps TIAS_test_pu60(7,kRed);
-  getAllTimeInfo("log_test_pu60.log", TIAS_test_pu60);
-
-  TimeInfoAllSteps TIAS_test_tec1_pu20(4,kGreen);
-  getAllTimeInfo("log_test_tec1_pu20.log", TIAS_test_tec1_pu20);
-  TimeInfoAllSteps TIAS_test_tec1_pu40(1,kGreen);
-  getAllTimeInfo("log_test_tec1_pu40.log", TIAS_test_tec1_pu40);
-  TimeInfoAllSteps TIAS_test_tec1_pu60(7,kGreen);
-  getAllTimeInfo("log_test_tec1_pu60.log", TIAS_test_tec1_pu60);
-
-  TimeInfoAllSteps TIAS_test_tec1_hp_pu20(4,kOrange);
-  getAllTimeInfo("log_test_tec1_hp_pu20.log", TIAS_test_tec1_hp_pu20);
-  TimeInfoAllSteps TIAS_test_tec1_hp_pu40(1,kOrange);
-  getAllTimeInfo("log_test_tec1_hp_pu40.log", TIAS_test_tec1_hp_pu40);
-  TimeInfoAllSteps TIAS_test_tec1_hp_pu60(7,kOrange);
-  getAllTimeInfo("log_test_tec1_hp_pu60.log", TIAS_test_tec1_hp_pu60);
-
-  cout << "PU20" << endl;
-
-  cout << "default: ";
-  plotOneVersion(TIAS_default_pu20,"mtv_default_pu20.root","Default TTbar + <PU>=20","DefaultPU20");
-  cout << "barrel: ";
-  plotOneVersion(TIAS_test_barrel_pu20,"mtv_test_barrel_pu20.root","Test_Barrel TTbar + <PU>=20","Test_BarrelPU20");
-  cout << "test: ";
-  plotOneVersion(TIAS_test_pu20,"mtv_test_pu20.root","Test TTbar + <PU>=20","TestPU20");
-  cout << "tec1: ";
-  plotOneVersion(TIAS_test_tec1_pu20,"mtv_test_tec1_pu20.root","Test_Tec1 TTbar + <PU>=20","Test_Tec1PU20");
-  cout << "tec1 hp: ";
-  plotOneVersion(TIAS_test_tec1_hp_pu20,"mtv_test_tec1_hp_pu20.root","Test_Tec1_Hp TTbar + <PU>=20","Test_Tec1_HpPU20");
-
-  cout << "PU40" << endl;
-
-  cout << "default: ";
-  plotOneVersion(TIAS_default_pu40,"mtv_default_pu40.root","Default TTbar + <PU>=40","DefaultPU40");
-  cout << "barrel: ";
-  plotOneVersion(TIAS_test_barrel_pu40,"mtv_test_barrel_pu40.root","Test_Barrel TTbar + <PU>=40","Test_BarrelPU40");
-  cout << "test: ";
-  plotOneVersion(TIAS_test_pu40,"mtv_test_pu40.root","Test TTbar + <PU>=40","TestPU40");
-  cout << "tec1: ";
-  plotOneVersion(TIAS_test_tec1_pu40,"mtv_test_tec1_pu40.root","Test_Tec1 TTbar + <PU>=40","Test_Tec1PU40");
-  cout << "tec1 hp: ";
-  plotOneVersion(TIAS_test_tec1_hp_pu40,"mtv_test_tec1_hp_pu40.root","Test_Tec1_Hp TTbar + <PU>=40","Test_Tec1_HpPU40");
-
-  cout << "PU60" << endl;
-
-  cout << "default: ";
-  plotOneVersion(TIAS_default_pu60,"mtv_default_pu60.root","Default TTbar + <PU>=60","DefaultPU60");
-  cout << "barrel: ";
-  plotOneVersion(TIAS_test_barrel_pu60,"mtv_test_barrel_pu60.root","Test_Barrel TTbar + <PU>=60","Test_BarrelPU60");
-   cout << "test: ";
-  plotOneVersion(TIAS_test_pu60,"mtv_test_pu60.root","Test TTbar + <PU>=60","TestPU60");
-  cout << "tec1: ";
-  plotOneVersion(TIAS_test_tec1_pu60,"mtv_test_tec1_pu60.root","Test_Tec1 TTbar + <PU>=60","Test_Tec1PU60");
-  cout << "tec1 hp: ";
-  plotOneVersion(TIAS_test_tec1_hp_pu60,"mtv_test_tec1_hp_pu60.root","Test_Tec1_Hp TTbar + <PU>=60","Test_Tec1_HpPU60");
-  */
-
-  /*
-  compareTwoVersions(TIAS_default_pu20,TIAS_test_pu20,"mtv_default_pu20.root","mtv_test_pu20.root",
-		     "Default TTbar + <PU>=20","Test TTbar + <PU>=20","PU20");
-  compareTwoVersions(TIAS_default_pu40,TIAS_test_pu40,"mtv_default_pu40.root","mtv_test_pu40.root",
-		     "Default TTbar + <PU>=40","Test TTbar + <PU>=40","PU40");
-  compareTwoVersions(TIAS_default_pu60,TIAS_test_pu60,"mtv_default_pu60.root","mtv_test_pu60.root",
-		     "Default TTbar + <PU>=60","Test TTbar + <PU>=60","PU60");
-
-  //run the test versions comparing different PU
-  compareThreeVersions(TIAS_default_pu20,TIAS_default_pu40,TIAS_default_pu60,
-		       "mtv_default_pu20.root","mtv_default_pu40.root","mtv_default_pu60.root",
-		       "Default TTbar + <PU>=20","Default TTbar + <PU>=40","Default TTbar + <PU>=60","default");
-
-  compareThreeVersions(TIAS_test_pu20,TIAS_test_pu40,TIAS_test_pu60,
-		       "mtv_test_pu20.root","mtv_test_pu40.root","mtv_test_pu60.root",
-		       "Test TTbar + <PU>=20","Test TTbar + <PU>=40","Test TTbar + <PU>=60","test");
-
-  compareThreeVersions(TIAS_test_barrel_pu20,TIAS_test_barrel_pu40,TIAS_test_barrel_pu60,
-		       "mtv_test_barrel_pu20.root","mtv_test_barrel_pu40.root","mtv_test_barrel_pu60.root",
-		       "Test_Barrel TTbar + <PU>=20","Test_Barrel TTbar + <PU>=40","Test_Barrel TTbar + <PU>=60","test_barrel");
-
-  compareThreeVersions(TIAS_test_tec1_pu20,TIAS_test_tec1_pu40,TIAS_test_tec1_pu60,
-		       "mtv_test_tec1_pu20.root","mtv_test_tec1_pu40.root","mtv_test_tec1_pu60.root",
-		       "Test_Tec1 TTbar + <PU>=20","Test_Tec1 TTbar + <PU>=40","Test_Tec1 TTbar + <PU>=60","test_tec1");
-
-  compareThreeVersions(TIAS_test_tec1_hp_pu20,TIAS_test_tec1_hp_pu40,TIAS_test_tec1_hp_pu60,
-		       "mtv_test_tec1_hp_pu20.root","mtv_test_tec1_hp_pu40.root","mtv_test_tec1_hp_pu60.root",
-		       "Test_Tec1_Hp TTbar + <PU>=20","Test_Tec1_Hp TTbar + <PU>=40","Test_Tec1_Hp TTbar + <PU>=60","test_tec1_hp");
-
-  //run same PU with different versions
-  compareThreeVersions(TIAS_default_pu40,TIAS_test_barrel_pu40,TIAS_test_pu40,
-		       "mtv_default_pu40.root","mtv_test_barrel_pu40.root","mtv_test_pu40.root",
-		       "Default TTbar + <PU>=40","Test Barrel TTbar + <PU>=40","Test TTbar + <PU>=40","testBar");
-
-  compareThreeVersions(TIAS_default_pu20,TIAS_test_pu20,TIAS_test_tec1_pu20,
-		       "mtv_default_pu20.root","mtv_test_pu20.root","mtv_test_tec1_pu20.root",
-		       "Default TTbar + <PU>=20","Test TTbar + <PU>=20","Test Tec1 TTbar + <PU>=20","test_tec1_PU20");
-
-  compareThreeVersions(TIAS_default_pu40,TIAS_test_pu40,TIAS_test_tec1_pu40,
-		       "mtv_default_pu40.root","mtv_test_pu40.root","mtv_test_tec1_pu40.root",
-		       "Default TTbar + <PU>=40","Test TTbar + <PU>=40","Test Tec1 TTbar + <PU>=40","test_tec1_PU40");
-
-  compareThreeVersions(TIAS_default_pu60,TIAS_test_pu60,TIAS_test_tec1_pu60,
-		       "mtv_default_pu60.root","mtv_test_pu60.root","mtv_test_tec1_pu60.root",
-		       "Default TTbar + <PU>=60","Test TTbar + <PU>=60","Test Tec1 TTbar + <PU>=60","test_tec1_PU60");
-
-  compareThreeVersions(TIAS_default_pu40,TIAS_test_pu40,TIAS_test_tec1_hp_pu40,
-		       "mtv_default_pu40.root","mtv_test_pu40.root","mtv_test_tec1_hp_pu40.root",
-		       "Default TTbar + <PU>=40","Test TTbar + <PU>=40","Test Tec1 TTbar + <PU>=40","test_tec1_hp_PU40");
-
-  compareFourVersions(TIAS_default_pu40,TIAS_test_barrel_pu40,TIAS_test_pu40,TIAS_test_tec1_pu40,
-		      "mtv_default_pu40.root","mtv_test_barrel_pu40.root","mtv_test_pu40.root","mtv_test_tec1_pu40.root",
-		      "Default TTbar + <PU>=40","Test_Barrel TTbar + <PU>=40","Test TTbar + <PU>=40","Test Tec1 TTbar + <PU>=40","test_all4_PU40");
-  */
+//   compareThreeVersions(TIAS_default,TIAS_triplets_mtec_ring3,TIAS_triplets_mtec_ring3_tobtec,"comp3_def_mtecr3_mtecr3tobtec");
 }
