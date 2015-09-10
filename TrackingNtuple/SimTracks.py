@@ -19,6 +19,7 @@ for jentry in xrange( entries ):
 
     # loop over simulated tracks
     for itp in range(0,len(trkTree.sim_pt)):
+        q =  trkTree.sim_q[itp]
         px =  trkTree.sim_px[itp]
         py =  trkTree.sim_py[itp]
         pz =  trkTree.sim_pz[itp]
@@ -29,7 +30,10 @@ for jentry in xrange( entries ):
         prody =  trkTree.sim_prody[itp]
         prodz =  trkTree.sim_prodz[itp]
         if math.fabs(eta)>0.5: continue
-        print ( "simTrack idx=%i with pos=%f,%f,%f mom=%f,%f,%f pT=%f eta=%f phi=%f" % (itp,prodx,prody,prodz,px,py,px,pt,eta,phi) )
+        if math.fabs(prodz)>0.1: continue        
+        trkIdx = trkTree.sim_trkIdx[itp]
+        trkAlgo = -1
+        if trkIdx >= 0: trkAlgo = trkTree.trk_algo[trkIdx]
         hits = []
         #sim hits
         for ipix in trkTree.sim_pixelIdx[itp]:
@@ -57,8 +61,19 @@ for jentry in xrange( entries ):
             #print ( "\tstrip det=%i lay=%i sim pos=%f,%f,%f r=%f eta=%f phi=%f" % (det,lay,x,y,z,r,eta,phi) )
         prev_det = -1
         prev_lay = -1
+        totLayers = 0
         for hit in sorted(hits, key=lambda hit: hit[5]):
             if hit[0]==prev_det and hit[1]==prev_lay: continue
-            print  ( "\tsim hit det=%i lay=%i sim pos=%f,%f,%f r=%f eta=%f phi=%f" % (hit[0],hit[1],hit[2],hit[3],hit[4],hit[5],hit[6],hit[7]) )
+            prev_det = hit[0]
+            prev_lay = hit[1]
+            totLayers = totLayers+1
+        if totLayers < 13: continue
+        #now we can print the info
+        print ( "simTrack %f %f %f %f %f %f %i pt=%f trkIdx=%i algo=%i" % (prodx,prody,prodz,px,py,pz,q,pt,trkIdx,trkAlgo) )
+        prev_det = -1
+        prev_lay = -1
+        for hit in sorted(hits, key=lambda hit: hit[5]):
+            if hit[0]==prev_det and hit[1]==prev_lay: continue
+            print  ( "simHit %f %f %f %f %f" % (hit[2],hit[3],hit[4],hit[5],hit[6]) )
             prev_det = hit[0]
             prev_lay = hit[1]
