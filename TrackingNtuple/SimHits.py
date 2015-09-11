@@ -1,4 +1,4 @@
-from ROOT import TFile, gDirectory, TH1F, TH2F
+from ROOT import TFile, gDirectory, TH1F, TH2F, TCanvas
 import math
 
 # open the file
@@ -9,8 +9,9 @@ trkTree = gDirectory.Get( 'trkTree/tree' )
 entries = trkTree.GetEntriesFast()
 
 h_r = TH1F("h_r","h_r",1200,0,120)
-h_xy = TH2F("h_xy","h_xy",3000,-150,150,3000,-150,150)
-h_axy = TH2F("h_axy","h_axy",1500,0,150,1500,0,150)
+h_xy = TH2F("h_xy","h_xy",2400,-120,120,2400,-120,120)
+h_axy = TH2F("h_axy","h_axy",1200,0,120,1200,0,120)
+h_azr = TH2F("h_azr","h_azr",240,0,120,1200,0,120)
 
 for jentry in xrange( entries ):
     
@@ -37,10 +38,12 @@ for jentry in xrange( entries ):
         xs = trkTree.pix_xsim[ipix]
         ys = trkTree.pix_ysim[ipix]
         zs = trkTree.pix_zsim[ipix]
+        rs = math.sqrt(xs*xs + ys*ys)
         print ( "\tpixel pos=(%f,%f,%f) r=%f eta=%f phi=%f, sim pos=(%f,%f,%f)" % (x,y,z,r,eta,phi,xs,ys,zs) )
-        h_r.Fill(r)
+        h_r.Fill(rs)
         h_xy.Fill(xs,ys)
         h_axy.Fill(math.fabs(xs),math.fabs(ys))
+        h_azr.Fill(math.fabs(zs),rs)
 
     # loop over strip hits
     istr = -1
@@ -57,10 +60,13 @@ for jentry in xrange( entries ):
         xs = trkTree.str_xsim[istr]
         ys = trkTree.str_ysim[istr]
         zs = trkTree.str_zsim[istr]
+        rs = math.sqrt(xs*xs + ys*ys)
         print ( "\tstrip pos=(%f,%f,%f) r=%f eta=%f phi=%f, sim pos=(%f,%f,%f), isStereo=%i" % (x,y,z,r,eta,phi,xs,ys,zs,trkTree.str_isStereo[istr]) )
         h_r.Fill(r)
         h_xy.Fill(xs,ys)
         h_axy.Fill(math.fabs(xs),math.fabs(ys))
+        h_azr.Fill(math.fabs(zs),rs)
 
-h_r.Draw()
+c1 = TCanvas("c1","c1",600,600)
+h_azr.Draw()
 
