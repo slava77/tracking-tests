@@ -61,6 +61,14 @@
 #include "SimGeneral/TrackingAnalysis/interface/SimHitTPAssociationProducer.h"
 #include "SimTracker/TrackAssociation/plugins/ParametersDefinerForTPESProducer.h"
 
+#include "TrackingTools/PatternTools/interface/TrajTrackAssociation.h"
+#include "TrackingTools/MaterialEffects/interface/MultipleScatteringUpdator.h"
+
+#include "TrackingTools/GeomPropagators/interface/AnalyticalPropagator.h"
+#include "DataFormats/GeometrySurface/interface/Cylinder.h"
+#include "TrackingTools/AnalyticalJacobians/interface/AnalyticalCurvilinearJacobian.h"
+#include "TrackingTools/AnalyticalJacobians/interface/JacobianCartesianToCurvilinear.h"
+
 #include "TTree.h"
 
 /*
@@ -184,6 +192,16 @@ private:
   std::vector<float> pix_xsim ;
   std::vector<float> pix_ysim ;
   std::vector<float> pix_zsim ;
+  std::vector<float> pix_pxsim ;
+  std::vector<float> pix_pysim ;
+  std::vector<float> pix_pzsim ;
+  std::vector<float> pix_pathprop ;
+  std::vector<float> pix_xsimprop ;
+  std::vector<float> pix_ysimprop ;
+  std::vector<float> pix_zsimprop ;
+  std::vector<float> pix_pxsimprop ;
+  std::vector<float> pix_pysimprop ;
+  std::vector<float> pix_pzsimprop ;
   std::vector<float> pix_eloss;
   std::vector<float> pix_radL ;  //http://cmslxr.fnal.gov/lxr/source/DataFormats/GeometrySurface/interface/MediumProperties.h
   std::vector<float> pix_bbxi ;
@@ -211,6 +229,9 @@ private:
   std::vector<float> str_xsim ;
   std::vector<float> str_ysim ;
   std::vector<float> str_zsim ;
+  std::vector<float> str_pxsim ;
+  std::vector<float> str_pysim ;
+  std::vector<float> str_pzsim ;
   std::vector<float> str_eloss;
   std::vector<float> str_radL ;  //http://cmslxr.fnal.gov/lxr/source/DataFormats/GeometrySurface/interface/MediumProperties.h
   std::vector<float> str_bbxi ;
@@ -363,6 +384,16 @@ void TrackingNtuple::clearVariables() {
   pix_xsim .clear();
   pix_ysim .clear();
   pix_zsim .clear();
+  pix_pxsim .clear();
+  pix_pysim .clear();
+  pix_pzsim .clear();
+  pix_pathprop .clear();
+  pix_xsimprop .clear();
+  pix_ysimprop .clear();
+  pix_zsimprop .clear();
+  pix_pxsimprop .clear();
+  pix_pysimprop .clear();
+  pix_pzsimprop .clear();
   pix_eloss.clear();
   pix_radL .clear();
   pix_bbxi .clear();
@@ -390,6 +421,9 @@ void TrackingNtuple::clearVariables() {
   str_xsim .clear();
   str_ysim .clear();
   str_zsim .clear();
+  str_pxsim .clear();
+  str_pysim .clear();
+  str_pzsim .clear();
   str_eloss.clear();
   str_radL .clear();
   str_bbxi .clear();
@@ -497,11 +531,15 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int firstMatchingTp = -999;
       int nMatchingTp = 0;
       GlobalPoint simHitPos = GlobalPoint(0,0,0);
+      GlobalVector simHitMom = GlobalVector(0,0,0);
       float energyLoss = -999.;
       int particleType = -999;
       int processType = -999;
       int bunchCrossing = -999;
       int event = -999;
+      GlobalPoint tpPos = GlobalPoint(0,0,0);
+      GlobalVector tpMom = GlobalVector(0,0,0);
+      int charge = 0;
       //get the TP that produced the hit
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
@@ -513,6 +551,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpPixList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
+	  charge = trackingParticle->charge();
+	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
+	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
 	  std::pair<TrackingParticleRef, TrackPSimHitRef> simHitTPpairWithDummyTP(trackingParticle,TrackPSimHitRef());
 	  //SimHit is dummy: for simHitTPAssociationListGreater sorting only the TP is needed
@@ -523,6 +564,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	    DetId dId = DetId(TPhit->detUnitId());
 	    if (dId.rawId()==hitId.rawId()) {
 	      simHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
+	      simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
 	      energyLoss = TPhit->energyLoss();
 	      particleType = TPhit->particleType();
 	      processType = TPhit->processType();
@@ -554,9 +596,63 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_xsim .push_back( simHitPos.x() );
       pix_ysim .push_back( simHitPos.y() );
       pix_zsim .push_back( simHitPos.z() );
+      pix_pxsim .push_back( simHitMom.x() );
+      pix_pysim .push_back( simHitMom.y() );
+      pix_pzsim .push_back( simHitMom.z() );
       pix_eloss.push_back( energyLoss );
       pix_radL .push_back( ttrh->surface()->mediumProperties().radLen() );
       pix_bbxi .push_back( ttrh->surface()->mediumProperties().xi() );
+
+      if (simHitPos.perp()>0) {
+	Propagator* ap = new AnalyticalPropagator(&*theMF);
+	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
+	AlgebraicSymMatrix66 err;
+	err[0][0] = tpPos.x()*tpPos.x();
+	err[1][1] = tpPos.y()*tpPos.y();
+	err[2][2] = tpPos.z()*tpPos.z();
+	err[3][3] = tpMom.x()*tpMom.x();
+	err[4][4] = tpMom.y()*tpMom.y();
+	err[5][5] = tpMom.z()*tpMom.z();
+	cout << "err0=" << err << endl;;
+	fts.setCartesianError(err);
+	cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
+	cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
+	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
+	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
+
+	cout << "tot path s=" << ap_result.second << endl;
+	cout << "pos=" << ap_result.first.globalPosition() << endl;
+	cout << "mom=" << ap_result.first.globalMomentum() << endl;
+	cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
+
+	AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
+	const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
+	JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
+	const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
+	AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
+
+	cout << "jacobian=" << endl << jacobianCart << endl;
+
+	cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+
+
+	pix_pathprop .push_back( ap_result.second );
+	pix_xsimprop .push_back( ap_result.first.globalPosition().x() );
+	pix_ysimprop .push_back( ap_result.first.globalPosition().y() );
+	pix_zsimprop .push_back( ap_result.first.globalPosition().z() );
+	pix_pxsimprop .push_back( ap_result.first.globalMomentum().x() );
+	pix_pysimprop .push_back( ap_result.first.globalMomentum().y() );
+	pix_pzsimprop .push_back( ap_result.first.globalMomentum().z() );
+      } else {
+	pix_pathprop .push_back( 0. );
+	pix_xsimprop .push_back( 0. );
+	pix_ysimprop .push_back( 0. );
+	pix_zsimprop .push_back( 0. );
+	pix_pxsimprop .push_back( 0. );
+	pix_pysimprop .push_back( 0. );
+	pix_pzsimprop .push_back( 0. );
+      }
+
       if (debug) cout << "pixHit cluster=" << hit->cluster().key()
 		      << " subdId=" << hitId.subdetId()
 		      << " lay=" << tTopo->layer(hitId)
@@ -604,6 +700,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   str_xsim .resize(totalStripHits);
   str_ysim .resize(totalStripHits);
   str_zsim .resize(totalStripHits);
+  str_pxsim .resize(totalStripHits);
+  str_pysim .resize(totalStripHits);
+  str_pzsim .resize(totalStripHits);
   str_eloss.resize(totalStripHits);
   str_radL .resize(totalStripHits);
   str_bbxi .resize(totalStripHits);
@@ -616,6 +715,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int firstMatchingTp = -1;
       int nMatchingTp = 0;
       GlobalPoint simHitPos = GlobalPoint(0,0,0);
+      GlobalVector simHitMom = GlobalVector(0,0,0);
       float energyLoss = -999.;
       int particleType = -999;
       int processType = -999;
@@ -641,6 +741,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	    DetId dId = DetId(TPhit->detUnitId());
 	    if (dId.rawId()==hitId.rawId()) {
 	      simHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
+	      simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
 	      energyLoss = TPhit->energyLoss();
 	      particleType = TPhit->particleType();
 	      processType = TPhit->processType();
@@ -675,6 +776,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_xsim [key] = simHitPos.x();
       str_ysim [key] = simHitPos.y();
       str_zsim [key] = simHitPos.z();
+      str_pxsim [key] = simHitMom.x();
+      str_pysim [key] = simHitMom.y();
+      str_pzsim [key] = simHitMom.z();
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
@@ -703,6 +807,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int firstMatchingTp = -1;
       int nMatchingTp = 0;
       GlobalPoint simHitPos = GlobalPoint(0,0,0);
+      GlobalVector simHitMom = GlobalVector(0,0,0);
       float energyLoss = -999.;
       int particleType = -999;
       int processType = -999;
@@ -728,6 +833,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	    DetId dId = DetId(TPhit->detUnitId());
 	    if (dId.rawId()==hitId.rawId()) {
 	      simHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
+	      simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
 	      energyLoss = TPhit->energyLoss();
 	      particleType = TPhit->particleType();
 	      processType = TPhit->processType();
@@ -762,6 +868,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_xsim [key] = simHitPos.x();
       str_ysim [key] = simHitPos.y();
       str_zsim [key] = simHitPos.z();
+      str_pxsim [key] = simHitMom.x();
+      str_pysim [key] = simHitMom.y();
+      str_pzsim [key] = simHitMom.z();
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
@@ -975,10 +1084,33 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   //tracks
   edm::Handle<View<Track> > tracks;
   iEvent.getByLabel(trackTag_,tracks);
+
+  edm::Handle<TrajTrackAssociationCollection> trajH;
+  iEvent.getByLabel(trackTag_,trajH);
+
   reco::RecoToSimCollection recSimColl = associatorByHits->associateRecoToSim(tracks,TPCollectionH,&iEvent,&iSetup);
   if (debug) cout << "NEW TRACK LABEL: " << trackTag_.label() << endl;
   for(unsigned int i=0; i<tracks->size(); ++i){
     RefToBase<Track> itTrack(tracks, i);
+    TrajTrackAssociationRef tt(trajH, i);
+    auto traj = tt->key;
+    cout << traj->measurements().size() << endl;
+    for ( auto tm : traj->measurements() ) {
+      MultipleScatteringUpdator msu(0.105);
+      TrajectoryStateOnSurface us = tm.updatedState();
+      LocalTrajectoryParameters lp = us.localParameters();
+      AlgebraicSymMatrix55 eloc = us.localError().matrix();
+      AlgebraicSymMatrix66 eglo = us.cartesianError().matrix();
+      materialEffect::Effect msEffect;
+      msu.compute(us,alongMomentum,msEffect);
+      msEffect.deltaCov.add(eloc);
+      us.update(lp,eloc,SurfaceSideDefinition::afterSurface);
+      AlgebraicSymMatrix66 egloNew = us.cartesianError().matrix();
+      cout << "dcxx=" << egloNew(0,0)-eglo(0,0) << " dcyy=" << egloNew(1,1)-eglo(1,1) << " dczz=" << egloNew(2,2)-eglo(2,2) << endl;
+      cout << "dcpxpx=" << egloNew(3,3)-eglo(3,3) << " dcpypy=" << egloNew(4,4)-eglo(4,4) << " dcpzpz=" << egloNew(5,5)-eglo(5,5) << endl;
+
+    }
+
     int nSimHits = 0;
     double sharedFraction = 0.;
     bool isSimMatched(false);
@@ -1230,6 +1362,16 @@ void TrackingNtuple::beginJob() {
   t->Branch("pix_xsim"  , &pix_xsim );
   t->Branch("pix_ysim"  , &pix_ysim );
   t->Branch("pix_zsim"  , &pix_zsim );
+  t->Branch("pix_pxsim"  , &pix_pxsim );
+  t->Branch("pix_pysim"  , &pix_pysim );
+  t->Branch("pix_pzsim"  , &pix_pzsim );
+  t->Branch("pix_pathprop"  , &pix_pathprop );
+  t->Branch("pix_xsimprop"  , &pix_xsimprop );
+  t->Branch("pix_ysimprop"  , &pix_ysimprop );
+  t->Branch("pix_zsimprop"  , &pix_zsimprop );
+  t->Branch("pix_pxsimprop"  , &pix_pxsimprop );
+  t->Branch("pix_pysimprop"  , &pix_pysimprop );
+  t->Branch("pix_pzsimprop"  , &pix_pzsimprop );
   t->Branch("pix_eloss" , &pix_eloss);
   t->Branch("pix_radL"  , &pix_radL );
   t->Branch("pix_bbxi"  , &pix_bbxi );
@@ -1257,6 +1399,9 @@ void TrackingNtuple::beginJob() {
   t->Branch("str_xsim"  , &str_xsim );
   t->Branch("str_ysim"  , &str_ysim );
   t->Branch("str_zsim"  , &str_zsim );
+  t->Branch("str_pxsim"  , &str_pxsim );
+  t->Branch("str_pysim"  , &str_pysim );
+  t->Branch("str_pzsim"  , &str_pzsim );
   t->Branch("str_eloss" , &str_eloss);
   t->Branch("str_radL"  , &str_radL );
   t->Branch("str_bbxi"  , &str_bbxi );

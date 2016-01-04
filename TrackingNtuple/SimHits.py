@@ -12,6 +12,10 @@ h_r = TH1F("h_r","h_r",1200,0,120)
 h_xy = TH2F("h_xy","h_xy",2400,-120,120,2400,-120,120)
 h_axy = TH2F("h_axy","h_axy",1200,0,120,1200,0,120)
 h_azr = TH2F("h_azr","h_azr",240,0,120,1200,0,120)
+h_radL_axy = TH2F("h_radL_axy","h_radL_axy",1200,0,120,1200,0,120)
+h_radL_azr = TH2F("h_radL_azr","h_radL_azr",240,0,120,1200,0,120)
+h_bbxi_axy = TH2F("h_bbxi_axy","h_bbxi_axy",1200,0,120,1200,0,120)
+h_bbxi_azr = TH2F("h_bbxi_azr","h_bbxi_azr",240,0,120,1200,0,120)
 
 for jentry in xrange( entries ):
     
@@ -35,6 +39,8 @@ for jentry in xrange( entries ):
         r = math.sqrt(x*x + y*y)
         eta = -math.log( math.tan( math.atan2(r,z)/2) )
         phi = math.atan2(y,x)
+        radL = trkTree.pix_radL[ipix]
+        bbxi = trkTree.pix_bbxi[ipix]
         xs = trkTree.pix_xsim[ipix]
         ys = trkTree.pix_ysim[ipix]
         zs = trkTree.pix_zsim[ipix]
@@ -44,6 +50,10 @@ for jentry in xrange( entries ):
         h_xy.Fill(xs,ys)
         h_axy.Fill(math.fabs(xs),math.fabs(ys))
         h_azr.Fill(math.fabs(zs),rs)
+        h_radL_axy.Fill(math.fabs(xs),math.fabs(ys),radL)
+        h_radL_azr.Fill(math.fabs(zs),rs,radL)
+        h_bbxi_axy.Fill(math.fabs(xs),math.fabs(ys),bbxi)
+        h_bbxi_azr.Fill(math.fabs(zs),rs,bbxi)
 
     # loop over strip hits
     istr = -1
@@ -57,6 +67,8 @@ for jentry in xrange( entries ):
         r = math.sqrt(x*x + y*y)
         eta = -math.log( math.tan( math.atan2(r,z)/2) )
         phi = math.atan2(y,x)
+        radL = trkTree.str_radL[istr]
+        bbxi = trkTree.str_bbxi[istr]
         xs = trkTree.str_xsim[istr]
         ys = trkTree.str_ysim[istr]
         zs = trkTree.str_zsim[istr]
@@ -66,7 +78,12 @@ for jentry in xrange( entries ):
         h_xy.Fill(xs,ys)
         h_axy.Fill(math.fabs(xs),math.fabs(ys))
         h_azr.Fill(math.fabs(zs),rs)
+        h_radL_axy.Fill(math.fabs(xs),math.fabs(ys),radL)
+        h_radL_azr.Fill(math.fabs(zs),rs,radL)
+        h_bbxi_axy.Fill(math.fabs(xs),math.fabs(ys),bbxi)
+        h_bbxi_azr.Fill(math.fabs(zs),rs,bbxi)
 
 c1 = TCanvas("c1","c1",600,600)
-h_azr.Draw()
+h_bbxi_azr.Divide(h_azr)
+h_bbxi_azr.Draw("colz")
 

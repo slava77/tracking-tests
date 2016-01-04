@@ -4,11 +4,11 @@ process = cms.Process("TrkNtuple")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:./1320.0_SingleMuPt10_UP15+SingleMuPt10_UP15INPUT+DIGIUP15+RECOUP15+HARVESTUP15+MINIAODMCUP15/step2.root'
+        'file:./SingleMuPt1NoMaterial/step2_1k.root'
     )
 )
 
