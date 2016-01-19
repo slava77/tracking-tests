@@ -613,17 +613,19 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	err[3][3] = tpMom.x()*tpMom.x();
 	err[4][4] = tpMom.y()*tpMom.y();
 	err[5][5] = tpMom.z()*tpMom.z();
-	cout << "err0=" << err << endl;;
+	if (debug) cout << "err0=" << err << endl;;
 	fts.setCartesianError(err);
-	cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
-	cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
+	if (debug) cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
+	if (debug) cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
 	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
 	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
 
-	cout << "tot path s=" << ap_result.second << endl;
-	cout << "pos=" << ap_result.first.globalPosition() << endl;
-	cout << "mom=" << ap_result.first.globalMomentum() << endl;
-	cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
+	if (debug){
+	  cout << "tot path s=" << ap_result.second << endl;
+	  cout << "pos=" << ap_result.first.globalPosition() << endl;
+	  cout << "mom=" << ap_result.first.globalMomentum() << endl;
+	  cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
+	}
 
 	AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
 	const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
@@ -631,9 +633,11 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
 	AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
 
-	cout << "jacobian=" << endl << jacobianCart << endl;
-
-	cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+	if (debug){
+	  cout << "jacobian=" << endl << jacobianCart << endl;
+	  
+	  cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+	}
 
 
 	pix_pathprop .push_back( ap_result.second );
