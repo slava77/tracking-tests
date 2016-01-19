@@ -1088,128 +1088,130 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   edm::Handle<TrajTrackAssociationCollection> trajH;
   iEvent.getByLabel(trackTag_,trajH);
 
-  reco::RecoToSimCollection recSimColl = associatorByHits->associateRecoToSim(tracks,TPCollectionH,&iEvent,&iSetup);
-  if (debug) cout << "NEW TRACK LABEL: " << trackTag_.label() << endl;
-  for(unsigned int i=0; i<tracks->size(); ++i){
-    RefToBase<Track> itTrack(tracks, i);
-    TrajTrackAssociationRef tt(trajH, i);
-    auto traj = tt->key;
-    cout << traj->measurements().size() << endl;
-    for ( auto tm : traj->measurements() ) {
-      MultipleScatteringUpdator msu(0.105);
-      TrajectoryStateOnSurface us = tm.updatedState();
-      LocalTrajectoryParameters lp = us.localParameters();
-      AlgebraicSymMatrix55 eloc = us.localError().matrix();
-      AlgebraicSymMatrix66 eglo = us.cartesianError().matrix();
-      materialEffect::Effect msEffect;
-      msu.compute(us,alongMomentum,msEffect);
-      msEffect.deltaCov.add(eloc);
-      us.update(lp,eloc, us.surface(), us.magneticField(), SurfaceSideDefinition::afterSurface);
-      AlgebraicSymMatrix66 egloNew = us.cartesianError().matrix();
-      cout << "dcxx=" << egloNew(0,0)-eglo(0,0) << " dcyy=" << egloNew(1,1)-eglo(1,1) << " dczz=" << egloNew(2,2)-eglo(2,2) << endl;
-      cout << "dcpxpx=" << egloNew(3,3)-eglo(3,3) << " dcpypy=" << egloNew(4,4)-eglo(4,4) << " dcpzpz=" << egloNew(5,5)-eglo(5,5) << endl;
-
-    }
-
-    int nSimHits = 0;
-    double sharedFraction = 0.;
-    bool isSimMatched(false);
-    int tpIdx = -1;
-    if (recSimColl.find(itTrack) != recSimColl.end()) { 
-      auto const & tp = recSimColl[itTrack];
-      if (!tp.empty()) {
-	nSimHits = tp[0].first->numberOfTrackerHits();
-	sharedFraction = tp[0].second;
-	isSimMatched = true;
-	tpIdx = tp[0].first.key();
+  if (tracks.isValid()){
+    reco::RecoToSimCollection recSimColl = associatorByHits->associateRecoToSim(tracks,TPCollectionH,&iEvent,&iSetup);
+    if (debug) cout << "NEW TRACK LABEL: " << trackTag_.label() << endl;
+    for(unsigned int i=0; i<tracks->size(); ++i){
+      RefToBase<Track> itTrack(tracks, i);
+      TrajTrackAssociationRef tt(trajH, i);
+      auto traj = tt->key;
+      cout << traj->measurements().size() << endl;
+      for ( auto tm : traj->measurements() ) {
+	MultipleScatteringUpdator msu(0.105);
+	TrajectoryStateOnSurface us = tm.updatedState();
+	LocalTrajectoryParameters lp = us.localParameters();
+	AlgebraicSymMatrix55 eloc = us.localError().matrix();
+	AlgebraicSymMatrix66 eglo = us.cartesianError().matrix();
+	materialEffect::Effect msEffect;
+	msu.compute(us,alongMomentum,msEffect);
+	msEffect.deltaCov.add(eloc);
+	us.update(lp,eloc, us.surface(), us.magneticField(), SurfaceSideDefinition::afterSurface);
+	AlgebraicSymMatrix66 egloNew = us.cartesianError().matrix();
+	cout << "dcxx=" << egloNew(0,0)-eglo(0,0) << " dcyy=" << egloNew(1,1)-eglo(1,1) << " dczz=" << egloNew(2,2)-eglo(2,2) << endl;
+	cout << "dcpxpx=" << egloNew(3,3)-eglo(3,3) << " dcpypy=" << egloNew(4,4)-eglo(4,4) << " dcpzpz=" << egloNew(5,5)-eglo(5,5) << endl;
+	
       }
-    }
-    int charge = itTrack->charge();
-    float pt = itTrack->pt();
-    float eta = itTrack->eta();
-    float chi2 = itTrack->normalizedChi2();
-    float phi = itTrack->phi();
-    int nHits = itTrack->numberOfValidHits();
-    HitPattern hp = itTrack->hitPattern();
-    trk_px       .push_back(itTrack->px());
-    trk_py       .push_back(itTrack->py());
-    trk_pz       .push_back(itTrack->pz());
-    trk_pt       .push_back(pt);
-    trk_eta      .push_back(eta);
-    trk_phi      .push_back(phi);
-    trk_dxy      .push_back(itTrack->dxy(bs.position()));
-    trk_dz       .push_back(itTrack->dz(bs.position()));
-    trk_ptErr    .push_back(itTrack->ptError());
-    trk_etaErr   .push_back(itTrack->etaError());
-    trk_phiErr   .push_back(itTrack->phiError());
-    trk_dxyErr   .push_back(itTrack->dxyError());
-    trk_dzErr    .push_back(itTrack->dzError());
-    trk_nChi2    .push_back( itTrack->normalizedChi2());
-    trk_shareFrac.push_back(sharedFraction);
-    trk_q        .push_back(charge);
-    trk_nValid   .push_back(hp.numberOfValidHits());
-    trk_nInvalid .push_back(hp.numberOfLostHits());
-    trk_nPixel   .push_back(hp.numberOfValidPixelHits());
-    trk_nStrip   .push_back(hp.numberOfValidStripHits());
-    trk_n3DLay   .push_back(hp.numberOfValidStripLayersWithMonoAndStereo()+hp.pixelLayersWithMeasurement());
-    trk_algo     .push_back(itTrack->algo());
-    trk_isHP     .push_back(itTrack->quality(TrackBase::highPurity));
-    trk_seedIdx  .push_back( algo_offset[itTrack->algo()] + itTrack->seedRef().key() );
-    trk_simIdx   .push_back(tpIdx);
-    if (debug) { 
-      cout << "Track #" << i << " with q=" << charge
-	   << ", pT=" << pt << " GeV, eta: " << eta << ", phi: " << phi
-	   << ", chi2=" << chi2
-	   << ", Nhits=" << nHits
-	   << ", algo=" << itTrack->algoName(itTrack->algo()).c_str()
-	   << " hp=" << itTrack->quality(TrackBase::highPurity)
-	   << " seed#=" << itTrack->seedRef().key()
-	   << " simMatch=" << isSimMatched
-	   << " nSimHits=" << nSimHits
-	   << " sharedFraction=" << sharedFraction
-	   << " tpIdx=" << tpIdx
-	   << endl;
-    }
-    vector<int> pixelCluster;
-    vector<int> stripCluster;
-    int nhit = 0;
-    for (trackingRecHit_iterator i=itTrack->recHitsBegin(); i!=itTrack->recHitsEnd(); i++){
-      if (debug) cout << "hit #" << nhit;
-      TransientTrackingRecHit::RecHitPointer hit=theTTRHBuilder->build(&**i );
-      DetId hitId = hit->geographicalId();
-      if (debug) cout << " subdet=" << hitId.subdetId();
-      if(hitId.det() == DetId::Tracker) {
-	if (debug) {
-	  if (hitId.subdetId() == StripSubdetector::TIB )      cout << " - TIB ";
-	  else if (hitId.subdetId() == StripSubdetector::TOB ) cout << " - TOB ";
-	  else if (hitId.subdetId() == StripSubdetector::TEC ) cout << " - TEC ";
-	  else if (hitId.subdetId() == StripSubdetector::TID ) cout << " - TID ";
-	  else if (hitId.subdetId() == (int) PixelSubdetector::PixelBarrel ) cout << " - PixBar ";
-	  else if (hitId.subdetId() == (int) PixelSubdetector::PixelEndcap ) cout << " - PixFwd ";
-	  else cout << " UNKNOWN TRACKER HIT TYPE ";
-	  cout << tTopo->layer(hitId);
-	}
-	bool isPixel = (hitId.subdetId() == (int) PixelSubdetector::PixelBarrel || hitId.subdetId() == (int) PixelSubdetector::PixelEndcap );
-	if (hit->isValid()) {
-	  //ugly... but works
-	  const BaseTrackerRecHit* bhit = dynamic_cast<const BaseTrackerRecHit*>(&*hit);
-	  if (debug) cout << " id: " << hitId.rawId() << " - globalPos =" << hit->globalPosition()
-			  << " cluster=" << (bhit->firstClusterRef().isPixel() ? bhit->firstClusterRef().cluster_pixel().key() :  bhit->firstClusterRef().cluster_strip().key())
-			  << " eta,phi: " << hit->globalPosition().eta() << "," << hit->globalPosition().phi()  << endl;
-	  if (isPixel) pixelCluster.push_back( bhit->firstClusterRef().cluster_pixel().key() );
-	  else         stripCluster.push_back( bhit->firstClusterRef().cluster_strip().key() );
-	} else  {
-	  if (debug) cout << " - invalid hit" << endl;
-	  if (isPixel) pixelCluster.push_back( -1 );
-	  else         stripCluster.push_back( -1 );
+      
+      int nSimHits = 0;
+      double sharedFraction = 0.;
+      bool isSimMatched(false);
+      int tpIdx = -1;
+      if (recSimColl.find(itTrack) != recSimColl.end()) { 
+	auto const & tp = recSimColl[itTrack];
+	if (!tp.empty()) {
+	  nSimHits = tp[0].first->numberOfTrackerHits();
+	  sharedFraction = tp[0].second;
+	  isSimMatched = true;
+	  tpIdx = tp[0].first.key();
 	}
       }
-      nhit++;
+      int charge = itTrack->charge();
+      float pt = itTrack->pt();
+      float eta = itTrack->eta();
+      float chi2 = itTrack->normalizedChi2();
+      float phi = itTrack->phi();
+      int nHits = itTrack->numberOfValidHits();
+      HitPattern hp = itTrack->hitPattern();
+      trk_px       .push_back(itTrack->px());
+      trk_py       .push_back(itTrack->py());
+      trk_pz       .push_back(itTrack->pz());
+      trk_pt       .push_back(pt);
+      trk_eta      .push_back(eta);
+      trk_phi      .push_back(phi);
+      trk_dxy      .push_back(itTrack->dxy(bs.position()));
+      trk_dz       .push_back(itTrack->dz(bs.position()));
+      trk_ptErr    .push_back(itTrack->ptError());
+      trk_etaErr   .push_back(itTrack->etaError());
+      trk_phiErr   .push_back(itTrack->phiError());
+      trk_dxyErr   .push_back(itTrack->dxyError());
+      trk_dzErr    .push_back(itTrack->dzError());
+      trk_nChi2    .push_back( itTrack->normalizedChi2());
+      trk_shareFrac.push_back(sharedFraction);
+      trk_q        .push_back(charge);
+      trk_nValid   .push_back(hp.numberOfValidHits());
+      trk_nInvalid .push_back(hp.numberOfLostHits());
+      trk_nPixel   .push_back(hp.numberOfValidPixelHits());
+      trk_nStrip   .push_back(hp.numberOfValidStripHits());
+      trk_n3DLay   .push_back(hp.numberOfValidStripLayersWithMonoAndStereo()+hp.pixelLayersWithMeasurement());
+      trk_algo     .push_back(itTrack->algo());
+      trk_isHP     .push_back(itTrack->quality(TrackBase::highPurity));
+      trk_seedIdx  .push_back( algo_offset[itTrack->algo()] + itTrack->seedRef().key() );
+      trk_simIdx   .push_back(tpIdx);
+      if (debug) { 
+	cout << "Track #" << i << " with q=" << charge
+	     << ", pT=" << pt << " GeV, eta: " << eta << ", phi: " << phi
+	     << ", chi2=" << chi2
+	     << ", Nhits=" << nHits
+	     << ", algo=" << itTrack->algoName(itTrack->algo()).c_str()
+	     << " hp=" << itTrack->quality(TrackBase::highPurity)
+	     << " seed#=" << itTrack->seedRef().key()
+	     << " simMatch=" << isSimMatched
+	     << " nSimHits=" << nSimHits
+	     << " sharedFraction=" << sharedFraction
+	     << " tpIdx=" << tpIdx
+	     << endl;
+      }
+      vector<int> pixelCluster;
+      vector<int> stripCluster;
+      int nhit = 0;
+      for (trackingRecHit_iterator i=itTrack->recHitsBegin(); i!=itTrack->recHitsEnd(); i++){
+	if (debug) cout << "hit #" << nhit;
+	TransientTrackingRecHit::RecHitPointer hit=theTTRHBuilder->build(&**i );
+	DetId hitId = hit->geographicalId();
+	if (debug) cout << " subdet=" << hitId.subdetId();
+	if(hitId.det() == DetId::Tracker) {
+	  if (debug) {
+	    if (hitId.subdetId() == StripSubdetector::TIB )      cout << " - TIB ";
+	    else if (hitId.subdetId() == StripSubdetector::TOB ) cout << " - TOB ";
+	    else if (hitId.subdetId() == StripSubdetector::TEC ) cout << " - TEC ";
+	    else if (hitId.subdetId() == StripSubdetector::TID ) cout << " - TID ";
+	    else if (hitId.subdetId() == (int) PixelSubdetector::PixelBarrel ) cout << " - PixBar ";
+	    else if (hitId.subdetId() == (int) PixelSubdetector::PixelEndcap ) cout << " - PixFwd ";
+	    else cout << " UNKNOWN TRACKER HIT TYPE ";
+	    cout << tTopo->layer(hitId);
+	  }
+	  bool isPixel = (hitId.subdetId() == (int) PixelSubdetector::PixelBarrel || hitId.subdetId() == (int) PixelSubdetector::PixelEndcap );
+	  if (hit->isValid()) {
+	    //ugly... but works
+	    const BaseTrackerRecHit* bhit = dynamic_cast<const BaseTrackerRecHit*>(&*hit);
+	    if (debug) cout << " id: " << hitId.rawId() << " - globalPos =" << hit->globalPosition()
+			    << " cluster=" << (bhit->firstClusterRef().isPixel() ? bhit->firstClusterRef().cluster_pixel().key() :  bhit->firstClusterRef().cluster_strip().key())
+			    << " eta,phi: " << hit->globalPosition().eta() << "," << hit->globalPosition().phi()  << endl;
+	    if (isPixel) pixelCluster.push_back( bhit->firstClusterRef().cluster_pixel().key() );
+	    else         stripCluster.push_back( bhit->firstClusterRef().cluster_strip().key() );
+	  } else  {
+	    if (debug) cout << " - invalid hit" << endl;
+	    if (isPixel) pixelCluster.push_back( -1 );
+	    else         stripCluster.push_back( -1 );
+	  }
+	}
+	nhit++;
+      }
+      if (debug) cout << endl;
+      trk_pixelIdx.push_back(pixelCluster);
+      trk_stripIdx.push_back(stripCluster);
     }
-    if (debug) cout << endl;
-    trk_pixelIdx.push_back(pixelCluster);
-    trk_stripIdx.push_back(stripCluster);
-  }
+  }//tracks.isValid
 
   //tracking particles
   //sort association maps with clusters
@@ -1219,16 +1221,18 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   for (auto itp = tPC.begin(); itp != tPC.end(); ++itp) {
     TrackingParticleRef tp(TPCollectionH,itp-tPC.begin());
     if (debug) cout << "tracking particle pt=" << tp->pt() << " eta=" << tp->eta() << " phi=" << tp->phi() << endl;
-    reco::SimToRecoCollection simRecColl = associatorByHits->associateSimToReco(tracks,TPCollectionH,&iEvent,&iSetup);
     bool isRecoMatched(false);
     int tkIdx = -1;
     float sharedFraction = -1;
-    if (simRecColl.find(tp) != simRecColl.end()) { 
-      auto const & tk = simRecColl[tp];
-      if (!tk.empty()) {
-	isRecoMatched = true;
-	tkIdx = tk[0].first.key();
-	sharedFraction = tk[0].second;
+    if (tracks.isValid()){
+      reco::SimToRecoCollection simRecColl = associatorByHits->associateSimToReco(tracks,TPCollectionH,&iEvent,&iSetup);
+      if (simRecColl.find(tp) != simRecColl.end()) { 
+	auto const & tk = simRecColl[tp];
+	if (!tk.empty()) {
+	  isRecoMatched = true;
+	  tkIdx = tk[0].first.key();
+	  sharedFraction = tk[0].second;
+	}
       }
     }
     if (debug) cout << "matched to track = " << tkIdx << " isRecoMatched=" << isRecoMatched << endl;
