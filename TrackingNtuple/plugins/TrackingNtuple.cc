@@ -1104,7 +1104,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       materialEffect::Effect msEffect;
       msu.compute(us,alongMomentum,msEffect);
       msEffect.deltaCov.add(eloc);
-      us.update(lp,eloc,SurfaceSideDefinition::afterSurface);
+      us.update(lp,eloc, us.surface(), us.magneticField(), SurfaceSideDefinition::afterSurface);
       AlgebraicSymMatrix66 egloNew = us.cartesianError().matrix();
       cout << "dcxx=" << egloNew(0,0)-eglo(0,0) << " dcyy=" << egloNew(1,1)-eglo(1,1) << " dczz=" << egloNew(2,2)-eglo(2,2) << endl;
       cout << "dcpxpx=" << egloNew(3,3)-eglo(3,3) << " dcpypy=" << egloNew(4,4)-eglo(4,4) << " dcpzpz=" << egloNew(5,5)-eglo(5,5) << endl;
@@ -1148,7 +1148,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     trk_shareFrac.push_back(sharedFraction);
     trk_q        .push_back(charge);
     trk_nValid   .push_back(hp.numberOfValidHits());
-    trk_nInvalid .push_back(hp.numberOfLostHits(HitPattern::TRACK_HITS));
+    trk_nInvalid .push_back(hp.numberOfLostHits());
     trk_nPixel   .push_back(hp.numberOfValidPixelHits());
     trk_nStrip   .push_back(hp.numberOfValidStripHits());
     trk_n3DLay   .push_back(hp.numberOfValidStripLayersWithMonoAndStereo()+hp.pixelLayersWithMeasurement());
