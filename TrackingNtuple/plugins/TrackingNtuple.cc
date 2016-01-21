@@ -604,7 +604,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_bbxi .push_back( ttrh->surface()->mediumProperties().xi() );
 
       if (simHitPos.perp()>0) {
-	Propagator* ap = new AnalyticalPropagator(&*theMF);
+	std::unique_ptr<Propagator> ap(new AnalyticalPropagator(&*theMF, PropagationDirection::alongMomentum, 3.0));
 	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
 	AlgebraicSymMatrix66 err;
 	err[0][0] = tpPos.x()*tpPos.x();
@@ -619,7 +619,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	if (debug) cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
 	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
 	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
-
+	
 	if (debug){
 	  cout << "tot path s=" << ap_result.second << endl;
 	  cout << "pos=" << ap_result.first.globalPosition() << endl;
@@ -627,26 +627,32 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
 	}
 
-	AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
-	const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
-	JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
-	const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
-	AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
-
-	if (debug){
-	  cout << "jacobian=" << endl << jacobianCart << endl;
+	if (ap_result.first.isValid()){
+	  AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
+	  const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
+	  JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
+	  const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
+	  AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
 	  
-	  cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+	  if (debug){
+	    cout << "jacobian=" << endl << jacobianCart << endl;
+	    
+	    cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+	  }
+	} else {
+	  if (debug) std::cout<<"propagation failed for "<<fts.parameters()<<std::endl;
 	}
 
+	GlobalPoint pos = ap_result.first.isValid() ?  ap_result.first.globalPosition() : GlobalPoint(0,0,0);
+	GlobalVector mom = ap_result.first.isValid() ? ap_result.first.globalMomentum() : GlobalVector(0,0,0);
 
 	pix_pathprop .push_back( ap_result.second );
-	pix_xsimprop .push_back( ap_result.first.globalPosition().x() );
-	pix_ysimprop .push_back( ap_result.first.globalPosition().y() );
-	pix_zsimprop .push_back( ap_result.first.globalPosition().z() );
-	pix_pxsimprop .push_back( ap_result.first.globalMomentum().x() );
-	pix_pysimprop .push_back( ap_result.first.globalMomentum().y() );
-	pix_pzsimprop .push_back( ap_result.first.globalMomentum().z() );
+	pix_xsimprop .push_back( pos.x() );
+	pix_ysimprop .push_back( pos.y() );
+	pix_zsimprop .push_back( pos.z() );
+	pix_pxsimprop .push_back( mom.x() );
+	pix_pysimprop .push_back( mom.y() );
+	pix_pzsimprop .push_back( mom.z() );
       } else {
 	pix_pathprop .push_back( 0. );
 	pix_xsimprop .push_back( 0. );
