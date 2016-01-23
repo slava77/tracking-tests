@@ -69,6 +69,10 @@
 #include "TrackingTools/AnalyticalJacobians/interface/AnalyticalCurvilinearJacobian.h"
 #include "TrackingTools/AnalyticalJacobians/interface/JacobianCartesianToCurvilinear.h"
 
+#include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
+#include "SimGeneral/TrackingAnalysis/interface/TPtoSimHitPtr.h"
+#include "DataFormats/Math/interface/deltaR.h"
+
 #include "TTree.h"
 
 /*
@@ -482,7 +486,6 @@ void TrackingNtuple::clearVariables() {
 
 }
 
-
 // ------------ method called for each event  ------------
 void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
@@ -502,8 +505,13 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   ClusterTPAssociationProducer::ClusterTPAssociationList clusterToTPMap( *(pCluster2TPListH.product()) );//has to be non-const to sort
   //make sure it is properly sorted
   sort( clusterToTPMap.begin(), clusterToTPMap.end(), clusterTPAssociationListGreater );
+
   edm::Handle<SimHitTPAssociationProducer::SimHitTPAssociationList> simHitsTPAssoc;
   iEvent.getByLabel("simHitTPAssocProducer",simHitsTPAssoc);
+
+  Handle<std::vector<TPtoSimHitPtr> > simHitsPTPAssoc;
+  iEvent.getByLabel("simHitTPAssocProducer",simHitsPTPAssoc);
+
   //make a list to link TrackingParticles to its hits in recHit collections
   //note only the first TP is saved so we ignore merged hits...
   vector<pair<int, int> > tpPixList;
@@ -559,22 +567,55 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  //SimHit is dummy: for simHitTPAssociationListGreater sorting only the TP is needed
 	  auto range = std::equal_range(simHitsTPAssoc->begin(), simHitsTPAssoc->end(),
 					simHitTPpairWithDummyTP, SimHitTPAssociationProducer::simHitTPAssociationListGreater);
+	  double minDist = 9999;
 	  for(auto ip = range.first; ip != range.second; ++ip) {
 	    TrackPSimHitRef TPhit = ip->second;
 	    DetId dId = DetId(TPhit->detUnitId());
 	    if (dId.rawId()==hitId.rawId()) {
-	      simHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
-	      simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
-	      energyLoss = TPhit->energyLoss();
-	      particleType = TPhit->particleType();
-	      processType = TPhit->processType();
-	      bunchCrossing = TPhit->eventId().bunchCrossing();
-	      event = TPhit->eventId().event();
+	      auto aSimHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
+	      double aDist = reco::deltaR(ttrh->globalPosition(), aSimHitPos);
+	      if (aDist < minDist){
+		minDist = aDist;
+		simHitPos = aSimHitPos;
+		simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
+		energyLoss = TPhit->energyLoss();
+		particleType = TPhit->particleType();
+		processType = TPhit->processType();
+		bunchCrossing = trackingParticle->eventId().bunchCrossing();
+		event = trackingParticle->eventId().event();
+	      }
+	    }
+	  }
+	  if (simHitPos.x() == 0 &&  simHitsPTPAssoc.isValid()){
+	    TPtoSimHitPtr simHitPTPpairWithDummyTP(trackingParticle,nullptr);
+	    auto range = std::equal_range(simHitsPTPAssoc->begin(), simHitsPTPAssoc->end(),
+					  simHitPTPpairWithDummyTP, TPtoSimHitPtr::greater);
+	    if (debug) std::cout<<"Trying TP-sim from simHitsPTPAssoc of size "<< simHitsPTPAssoc->size()<<" for tp at "<<trackingParticle.key()
+				<<" have nHits "<< std::distance(range.first, range.second)<<std::endl;
+	    
+	    double minDist = 9999;
+	    for(auto ip = range.first; ip != range.second; ++ip) {
+	      const PSimHit* TPhit = ip->hit;
+	      DetId dId = DetId(TPhit->detUnitId());
+	      if (dId.rawId()==hitId.rawId()) {
+		auto aSimHitPos = ttrh->surface()->toGlobal(TPhit->localPosition());
+		double aDist = reco::deltaR(ttrh->globalPosition(), aSimHitPos);
+		if (aDist < minDist ){
+		  minDist = aDist;
+		  simHitPos = aSimHitPos;
+		  simHitMom = ttrh->surface()->toGlobal(TPhit->momentumAtEntry());
+		  energyLoss = TPhit->energyLoss();
+		  particleType = TPhit->particleType();
+		  processType = TPhit->processType();
+		  bunchCrossing = trackingParticle->eventId().bunchCrossing();
+		  event = trackingParticle->eventId().event();
+		}
+	      }
 	    }
 	  }
 	  break;
-	}
-      }
+	}//TPs for the cluster
+      }//have TPs for the cluster
       pix_isBarrel .push_back( hitId.subdetId()==1 );
       pix_lay      .push_back( tTopo->layer(hitId) );
       pix_detId    .push_back( hitId.rawId() );
