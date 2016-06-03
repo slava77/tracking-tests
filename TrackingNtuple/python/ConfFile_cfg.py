@@ -9,8 +9,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        #'file:./SingleMuPt1_new/step2.root'
-        'file:./SingleMuPt10_new/step2.root'
+        #'file:./SingleMuPt1/step2.root'
+        'file:./SingleMuPt10/step2.root'
         #'file:./ZTT/step2.root'
         #'file:./TTbar/step2.root'
         #'file:./TTbarPU10/step2.root'
