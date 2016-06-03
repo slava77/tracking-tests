@@ -200,13 +200,6 @@ private:
   std::vector<float> pix_pxsim ;
   std::vector<float> pix_pysim ;
   std::vector<float> pix_pzsim ;
-  std::vector<float> pix_pathprop ;
-  std::vector<float> pix_xsimprop ;
-  std::vector<float> pix_ysimprop ;
-  std::vector<float> pix_zsimprop ;
-  std::vector<float> pix_pxsimprop ;
-  std::vector<float> pix_pysimprop ;
-  std::vector<float> pix_pzsimprop ;
   std::vector<float> pix_eloss;
   std::vector<float> pix_radL ;  //http://cmslxr.fnal.gov/lxr/source/DataFormats/GeometrySurface/interface/MediumProperties.h
   std::vector<float> pix_bbxi ;
@@ -238,13 +231,6 @@ private:
   std::vector<float> str_pxsim ;
   std::vector<float> str_pysim ;
   std::vector<float> str_pzsim ;
-  std::vector<float> str_pathprop ;
-  std::vector<float> str_xsimprop ;
-  std::vector<float> str_ysimprop ;
-  std::vector<float> str_zsimprop ;
-  std::vector<float> str_pxsimprop ;
-  std::vector<float> str_pysimprop ;
-  std::vector<float> str_pzsimprop ;
   std::vector<float> str_eloss;
   std::vector<float> str_radL ;  //http://cmslxr.fnal.gov/lxr/source/DataFormats/GeometrySurface/interface/MediumProperties.h
   std::vector<float> str_bbxi ;
@@ -430,13 +416,6 @@ void TrackingNtuple::clearVariables() {
   pix_pxsim .clear();
   pix_pysim .clear();
   pix_pzsim .clear();
-  pix_pathprop .clear();
-  pix_xsimprop .clear();
-  pix_ysimprop .clear();
-  pix_zsimprop .clear();
-  pix_pxsimprop .clear();
-  pix_pysimprop .clear();
-  pix_pzsimprop .clear();
   pix_eloss.clear();
   pix_radL .clear();
   pix_bbxi .clear();
@@ -468,13 +447,6 @@ void TrackingNtuple::clearVariables() {
   str_pxsim .clear();
   str_pysim .clear();
   str_pzsim .clear();
-  str_pathprop .clear();
-  str_xsimprop .clear();
-  str_ysimprop .clear();
-  str_zsimprop .clear();
-  str_pxsimprop .clear();
-  str_pysimprop .clear();
-  str_pzsimprop .clear();
   str_eloss.clear();
   str_radL .clear();
   str_bbxi .clear();
@@ -682,57 +654,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_radL .push_back( ttrh->surface()->mediumProperties().radLen() );
       pix_bbxi .push_back( ttrh->surface()->mediumProperties().xi() );
 
-      if (/*simHitPos.perp()>*/0) {
-	//test analytical propagation
-	Propagator* ap = new AnalyticalPropagator(&*theMF);
-	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
-	AlgebraicSymMatrix66 err;
-	err[0][0] = tpPos.x()*tpPos.x();
-	err[1][1] = tpPos.y()*tpPos.y();
-	err[2][2] = tpPos.z()*tpPos.z();
-	err[3][3] = tpMom.x()*tpMom.x();
-	err[4][4] = tpMom.y()*tpMom.y();
-	err[5][5] = tpMom.z()*tpMom.z();
-	fts.setCartesianError(err);
-	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
-	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
-
-	//cout << "err0=" << err << endl;;
-	//cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
-	//cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
-
-	//cout << "tot path s=" << ap_result.second << endl;
-	//cout << "pos=" << ap_result.first.globalPosition() << endl;
-	//cout << "mom=" << ap_result.first.globalMomentum() << endl;
-	//cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
-
-	//AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
-	//const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
-	//JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
-	//const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
-	//AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
-
-	//cout << "jacobian=" << endl << jacobianCart << endl;
-
-	//cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
-
-	pix_pathprop .push_back( ap_result.second );
-	pix_xsimprop .push_back( ap_result.first.globalPosition().x() );
-	pix_ysimprop .push_back( ap_result.first.globalPosition().y() );
-	pix_zsimprop .push_back( ap_result.first.globalPosition().z() );
-	pix_pxsimprop .push_back( ap_result.first.globalMomentum().x() );
-	pix_pysimprop .push_back( ap_result.first.globalMomentum().y() );
-	pix_pzsimprop .push_back( ap_result.first.globalMomentum().z() );
-      } else {
-	pix_pathprop .push_back( 0. );
-	pix_xsimprop .push_back( 0. );
-	pix_ysimprop .push_back( 0. );
-	pix_zsimprop .push_back( 0. );
-	pix_pxsimprop .push_back( 0. );
-	pix_pysimprop .push_back( 0. );
-	pix_pzsimprop .push_back( 0. );
-      }
-
       if (debug) cout << "pixHit cluster=" << hit->cluster().key()
 		      << " subdId=" << hitId.subdetId()
 		      << " lay=" << tTopo->layer(hitId)
@@ -785,13 +706,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   str_pxsim .resize(totalStripHits);
   str_pysim .resize(totalStripHits);
   str_pzsim .resize(totalStripHits);
-  str_pathprop .resize(totalStripHits);
-  str_xsimprop .resize(totalStripHits);
-  str_ysimprop .resize(totalStripHits);
-  str_zsimprop .resize(totalStripHits);
-  str_pxsimprop.resize(totalStripHits);
-  str_pysimprop.resize(totalStripHits);
-  str_pzsimprop.resize(totalStripHits);
   str_eloss.resize(totalStripHits);
   str_radL .resize(totalStripHits);
   str_bbxi .resize(totalStripHits);
@@ -878,40 +792,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
-
-      str_pathprop [key] = 0. ;
-      str_xsimprop [key] = 0. ;
-      str_ysimprop [key] = 0. ;
-      str_zsimprop [key] = 0. ;
-      str_pxsimprop [key] = 0. ;
-      str_pysimprop [key] = 0. ;
-      str_pzsimprop [key] = 0. ;
-      if (/*simHitPos.perp()>*/0) {
-	//test analytical propagation
-	Propagator* ap = new AnalyticalPropagator(&*theMF);
-	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
-	AlgebraicSymMatrix66 err;
-	err[0][0] = tpPos.x()*tpPos.x();
-	err[1][1] = tpPos.y()*tpPos.y();
-	err[2][2] = tpPos.z()*tpPos.z();
-	err[3][3] = tpMom.x()*tpMom.x();
-	err[4][4] = tpMom.y()*tpMom.y();
-	err[5][5] = tpMom.z()*tpMom.z();
-	fts.setCartesianError(err);
-	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
-	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
-
-	str_pathprop [key] = ap_result.second ;
-	if (ap_result.first.isValid()) {
-	  str_xsimprop [key] = ap_result.first.globalPosition().x() ;
-	  str_ysimprop [key] = ap_result.first.globalPosition().y() ;
-	  str_zsimprop [key] = ap_result.first.globalPosition().z() ;
-	  str_pxsimprop [key] = ap_result.first.globalMomentum().x() ;
-	  str_pysimprop [key] = ap_result.first.globalMomentum().y() ;
-	  str_pzsimprop [key] = ap_result.first.globalMomentum().z() ;
-	}
-      }
-
 
       if (debug) cout << "stripRPhiHit cluster=" << key
 		      << " subdId=" << hitId.subdetId()
@@ -1011,39 +891,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
-
-      str_pathprop [key] = 0. ;
-      str_xsimprop [key] = 0. ;
-      str_ysimprop [key] = 0. ;
-      str_zsimprop [key] = 0. ;
-      str_pxsimprop [key] = 0. ;
-      str_pysimprop [key] = 0. ;
-      str_pzsimprop [key] = 0. ;
-      if (simHitPos.perp()>0) {
-	//test analytical propagation
-	Propagator* ap = new AnalyticalPropagator(&*theMF);
-	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
-	AlgebraicSymMatrix66 err;
-	err[0][0] = tpPos.x()*tpPos.x();
-	err[1][1] = tpPos.y()*tpPos.y();
-	err[2][2] = tpPos.z()*tpPos.z();
-	err[3][3] = tpMom.x()*tpMom.x();
-	err[4][4] = tpMom.y()*tpMom.y();
-	err[5][5] = tpMom.z()*tpMom.z();
-	fts.setCartesianError(err);
-	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
-	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
-
-	str_pathprop [key] = ap_result.second ;
-	if (ap_result.first.isValid()) {
-	  str_xsimprop [key] = ap_result.first.globalPosition().x() ;
-	  str_ysimprop [key] = ap_result.first.globalPosition().y() ;
-	  str_zsimprop [key] = ap_result.first.globalPosition().z() ;
-	  str_pxsimprop [key] = ap_result.first.globalMomentum().x() ;
-	  str_pysimprop [key] = ap_result.first.globalMomentum().y() ;
-	  str_pzsimprop [key] = ap_result.first.globalMomentum().z() ;
-	}
-      }
 
       if (debug) cout << "stripStereoHit cluster=" << key
 		      << " subdId=" << hitId.subdetId()
@@ -1676,13 +1523,6 @@ void TrackingNtuple::beginJob() {
   t->Branch("pix_pxsim"  , &pix_pxsim );
   t->Branch("pix_pysim"  , &pix_pysim );
   t->Branch("pix_pzsim"  , &pix_pzsim );
-  t->Branch("pix_pathprop"  , &pix_pathprop );
-  t->Branch("pix_xsimprop"  , &pix_xsimprop );
-  t->Branch("pix_ysimprop"  , &pix_ysimprop );
-  t->Branch("pix_zsimprop"  , &pix_zsimprop );
-  t->Branch("pix_pxsimprop"  , &pix_pxsimprop );
-  t->Branch("pix_pysimprop"  , &pix_pysimprop );
-  t->Branch("pix_pzsimprop"  , &pix_pzsimprop );
   t->Branch("pix_eloss" , &pix_eloss);
   t->Branch("pix_radL"  , &pix_radL );
   t->Branch("pix_bbxi"  , &pix_bbxi );
@@ -1714,13 +1554,6 @@ void TrackingNtuple::beginJob() {
   t->Branch("str_pxsim"  , &str_pxsim );
   t->Branch("str_pysim"  , &str_pysim );
   t->Branch("str_pzsim"  , &str_pzsim );
-  t->Branch("str_pathprop"  , &str_pathprop );
-  t->Branch("str_xsimprop"  , &str_xsimprop );
-  t->Branch("str_ysimprop"  , &str_ysimprop );
-  t->Branch("str_zsimprop"  , &str_zsimprop );
-  t->Branch("str_pxsimprop"  , &str_pxsimprop );
-  t->Branch("str_pysimprop"  , &str_pysimprop );
-  t->Branch("str_pzsimprop"  , &str_pzsimprop );
   t->Branch("str_eloss" , &str_eloss);
   t->Branch("str_radL"  , &str_radL );
   t->Branch("str_bbxi"  , &str_bbxi );
