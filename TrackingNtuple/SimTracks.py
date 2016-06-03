@@ -2,7 +2,7 @@ from ROOT import TFile, gDirectory, TH1F, TH2F
 import math
 
 # open the file
-inputFile = TFile( 'ntuple_1GeV_1k.root' )
+inputFile = TFile( 'ntuple_1GeVNoMaterial_10k.root' )
 
 # retrieve the ntuple of interest
 trkTree = gDirectory.Get( 'trkTree/tree' )
@@ -41,9 +41,9 @@ for jentry in xrange( entries ):
             y = trkTree.pix_ysim[ipix]
             z = trkTree.pix_zsim[ipix]
             r = math.sqrt(x*x + y*y)
-            pxsh = 0#trkTree.pix_pxsim[ipix]
-            pysh = 0#trkTree.pix_pysim[ipix]
-            pzsh = 0#trkTree.pix_pzsim[ipix]
+            pxsh = trkTree.pix_pxsim[ipix]
+            pysh = trkTree.pix_pysim[ipix]
+            pzsh = trkTree.pix_pzsim[ipix]
             eta = -math.log( math.tan( math.atan2(r,z)/2) )
             phi = math.atan2(y,x)
             det = 2-trkTree.pix_isBarrel[ipix]
@@ -66,9 +66,9 @@ for jentry in xrange( entries ):
             y = trkTree.str_ysim[istr]
             z = trkTree.str_zsim[istr]
             r = math.sqrt(x*x + y*y)
-            pxsh = 0#trkTree.str_pxsim[istr]
-            pysh = 0#trkTree.str_pysim[istr]
-            pzsh = 0#trkTree.str_pzsim[istr]
+            pxsh = trkTree.str_pxsim[istr]
+            pysh = trkTree.str_pysim[istr]
+            pzsh = trkTree.str_pzsim[istr]
             eta = -math.log( math.tan( math.atan2(r,z)/2) )
             phi = math.atan2(y,x)
             det = trkTree.str_det[istr]

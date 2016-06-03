@@ -121,6 +121,8 @@ private:
   const TrackerTopology* tTopo;
 
   TTree* t;
+  //event
+  int evt;
   //tracks
   std::vector<float> trk_px       ;
   std::vector<float> trk_py       ;
@@ -143,12 +145,14 @@ private:
   std::vector<int> trk_nPixel  ;
   std::vector<int> trk_nStrip  ;
   std::vector<int> trk_n3DLay  ;
+  std::vector<int> trk_nLay    ;
   std::vector<int> trk_algo    ;
   std::vector<int> trk_isHP    ;
   std::vector<int> trk_seedIdx ;
   std::vector<int> trk_simIdx  ;
   std::vector<std::vector<int> > trk_pixelIdx;
   std::vector<std::vector<int> > trk_stripIdx;
+  std::vector<std::vector<int> > trk_gluedIdx;
   //sim tracks
   std::vector<float> sim_px       ;
   std::vector<float> sim_py       ;
@@ -180,6 +184,7 @@ private:
   std::vector<int> pix_process  ;
   std::vector<int> pix_bunchXing;
   std::vector<int> pix_event    ;
+  std::vector<int> pix_posFromTrack;
   std::vector<float> pix_x    ;
   std::vector<float> pix_y    ;
   std::vector<float> pix_z    ;
@@ -217,6 +222,7 @@ private:
   std::vector<int> str_process  ;
   std::vector<int> str_bunchXing;
   std::vector<int> str_event    ;
+  std::vector<int> str_posFromTrack;
   std::vector<float> str_x    ;
   std::vector<float> str_y    ;
   std::vector<float> str_z    ;
@@ -232,6 +238,13 @@ private:
   std::vector<float> str_pxsim ;
   std::vector<float> str_pysim ;
   std::vector<float> str_pzsim ;
+  std::vector<float> str_pathprop ;
+  std::vector<float> str_xsimprop ;
+  std::vector<float> str_ysimprop ;
+  std::vector<float> str_zsimprop ;
+  std::vector<float> str_pxsimprop ;
+  std::vector<float> str_pysimprop ;
+  std::vector<float> str_pzsimprop ;
   std::vector<float> str_eloss;
   std::vector<float> str_radL ;  //http://cmslxr.fnal.gov/lxr/source/DataFormats/GeometrySurface/interface/MediumProperties.h
   std::vector<float> str_bbxi ;
@@ -242,6 +255,7 @@ private:
   std::vector<int> glu_detId    ;
   std::vector<int> glu_monoIdx  ;
   std::vector<int> glu_stereoIdx;
+  std::vector<int> glu_posFromTrack;
   std::vector<float> glu_x    ;
   std::vector<float> glu_y    ;
   std::vector<float> glu_z    ;
@@ -261,9 +275,33 @@ private:
   float bsp_sigmay;
   float bsp_sigmaz;
   //seeds
+  std::vector<float> see_x       ;
+  std::vector<float> see_y       ;
+  std::vector<float> see_z       ;
   std::vector<float> see_px       ;
   std::vector<float> see_py       ;
   std::vector<float> see_pz       ;
+  std::vector<float> see_cov00    ;
+  std::vector<float> see_cov01    ;
+  std::vector<float> see_cov02    ;
+  std::vector<float> see_cov03    ;
+  std::vector<float> see_cov04    ;
+  std::vector<float> see_cov05    ;
+  std::vector<float> see_cov11    ;
+  std::vector<float> see_cov12    ;
+  std::vector<float> see_cov13    ;
+  std::vector<float> see_cov14    ;
+  std::vector<float> see_cov15    ;
+  std::vector<float> see_cov22    ;
+  std::vector<float> see_cov23    ;
+  std::vector<float> see_cov24    ;
+  std::vector<float> see_cov25    ;
+  std::vector<float> see_cov33    ;
+  std::vector<float> see_cov34    ;
+  std::vector<float> see_cov35    ;
+  std::vector<float> see_cov44    ;
+  std::vector<float> see_cov45    ;
+  std::vector<float> see_cov55    ;
   std::vector<float> see_pt       ;
   std::vector<float> see_eta      ;
   std::vector<float> see_phi      ;
@@ -313,6 +351,8 @@ TrackingNtuple::~TrackingNtuple() {
 //
 void TrackingNtuple::clearVariables() {
 
+  //event
+  evt = -9999;
   //tracks
   trk_px       .clear();
   trk_py       .clear();
@@ -335,12 +375,14 @@ void TrackingNtuple::clearVariables() {
   trk_nPixel   .clear();
   trk_nStrip   .clear();
   trk_n3DLay   .clear();
+  trk_nLay     .clear();
   trk_algo     .clear();
   trk_isHP     .clear();
   trk_seedIdx  .clear();
   trk_simIdx   .clear();
   trk_pixelIdx .clear();
   trk_stripIdx .clear();
+  trk_gluedIdx .clear();
   //sim tracks
   sim_px       .clear();
   sim_py       .clear();
@@ -372,6 +414,7 @@ void TrackingNtuple::clearVariables() {
   pix_process  .clear();
   pix_bunchXing.clear();
   pix_event    .clear();
+  pix_posFromTrack.clear();
   pix_x    .clear();
   pix_y    .clear();
   pix_z    .clear();
@@ -409,6 +452,7 @@ void TrackingNtuple::clearVariables() {
   str_process  .clear();
   str_bunchXing.clear();
   str_event    .clear();
+  str_posFromTrack.clear();
   str_x    .clear();
   str_y    .clear();
   str_z    .clear();
@@ -424,6 +468,13 @@ void TrackingNtuple::clearVariables() {
   str_pxsim .clear();
   str_pysim .clear();
   str_pzsim .clear();
+  str_pathprop .clear();
+  str_xsimprop .clear();
+  str_ysimprop .clear();
+  str_zsimprop .clear();
+  str_pxsimprop .clear();
+  str_pysimprop .clear();
+  str_pzsimprop .clear();
   str_eloss.clear();
   str_radL .clear();
   str_bbxi .clear();
@@ -434,6 +485,7 @@ void TrackingNtuple::clearVariables() {
   glu_detId    .clear();
   glu_monoIdx  .clear();
   glu_stereoIdx.clear();
+  glu_posFromTrack.clear();
   glu_x        .clear();
   glu_y        .clear();
   glu_z        .clear();
@@ -453,9 +505,33 @@ void TrackingNtuple::clearVariables() {
   bsp_sigmay = -9999.;
   bsp_sigmaz = -9999.;
   //seeds
+  see_x       .clear();
+  see_y       .clear();
+  see_z       .clear();
   see_px      .clear();
   see_py      .clear();
   see_pz      .clear();
+  see_cov00   .clear();
+  see_cov01   .clear();
+  see_cov02   .clear();
+  see_cov03   .clear();
+  see_cov04   .clear();
+  see_cov05   .clear();
+  see_cov11   .clear();
+  see_cov12   .clear();
+  see_cov13   .clear();
+  see_cov14   .clear();
+  see_cov15   .clear();
+  see_cov22   .clear();
+  see_cov23   .clear();
+  see_cov24   .clear();
+  see_cov25   .clear();
+  see_cov33   .clear();
+  see_cov34   .clear();
+  see_cov35   .clear();
+  see_cov44   .clear();
+  see_cov45   .clear();
+  see_cov55   .clear();
   see_pt      .clear();
   see_eta     .clear();
   see_phi     .clear();
@@ -492,6 +568,8 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
   //initialize tree variables
   clearVariables();
+
+  evt = iEvent.id().event();
 
   //get association maps, etc.
   Handle<TrackingParticleCollection>  TPCollectionH;
@@ -584,6 +662,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_process  .push_back( processType );
       pix_bunchXing.push_back( bunchCrossing );
       pix_event    .push_back( event );
+      pix_posFromTrack.push_back( 0 );
       pix_x    .push_back( ttrh->globalPosition().x() );
       pix_y    .push_back( ttrh->globalPosition().y() );
       pix_z    .push_back( ttrh->globalPosition().z() );
@@ -603,7 +682,8 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_radL .push_back( ttrh->surface()->mediumProperties().radLen() );
       pix_bbxi .push_back( ttrh->surface()->mediumProperties().xi() );
 
-      if (simHitPos.perp()>0) {
+      if (/*simHitPos.perp()>*/0) {
+	//test analytical propagation
 	Propagator* ap = new AnalyticalPropagator(&*theMF);
 	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
 	AlgebraicSymMatrix66 err;
@@ -613,28 +693,28 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	err[3][3] = tpMom.x()*tpMom.x();
 	err[4][4] = tpMom.y()*tpMom.y();
 	err[5][5] = tpMom.z()*tpMom.z();
-	cout << "err0=" << err << endl;;
 	fts.setCartesianError(err);
-	cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
-	cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
 	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
 	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
 
-	cout << "tot path s=" << ap_result.second << endl;
-	cout << "pos=" << ap_result.first.globalPosition() << endl;
-	cout << "mom=" << ap_result.first.globalMomentum() << endl;
-	cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
+	//cout << "err0=" << err << endl;;
+	//cout << "mf=" << theMF->inTesla(GlobalPoint(0.,0.,0.)) << endl;
+	//cout << "simHitPos=" << simHitPos << " simHitPos.perp()=" << simHitPos.perp() << endl;
 
-	AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
-	const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
-	JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
-	const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
-	AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
+	//cout << "tot path s=" << ap_result.second << endl;
+	//cout << "pos=" << ap_result.first.globalPosition() << endl;
+	//cout << "mom=" << ap_result.first.globalMomentum() << endl;
+	//cout << "err=" << endl << ap_result.first.cartesianError().matrix() << endl;
 
-	cout << "jacobian=" << endl << jacobianCart << endl;
+	//AnalyticalCurvilinearJacobian analyticalJacobian(fts.parameters(), ap_result.first.globalPosition(), ap_result.first.globalMomentum(), ap_result.second);
+	//const AlgebraicMatrix55 jacobianCurv = analyticalJacobian.jacobian();
+	//JacobianCartesianToCurvilinear jacobianCartesianToCurvilinear(ap_result.first.globalParameters());
+	//const AlgebraicMatrix56 jacobianC2C = jacobianCartesianToCurvilinear.jacobian();
+	//AlgebraicMatrix66 jacobianCart =  ROOT::Math::Transpose(jacobianC2C)*jacobianCurv*jacobianC2C;
 
-	cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
+	//cout << "jacobian=" << endl << jacobianCart << endl;
 
+	//cout << "errFromJac=" << endl << ROOT::Math::Similarity(jacobianCart,err) << endl;
 
 	pix_pathprop .push_back( ap_result.second );
 	pix_xsimprop .push_back( ap_result.first.globalPosition().x() );
@@ -677,6 +757,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   edm::Handle<SiStripRecHit2DCollection> stereoHits;
   iEvent.getByLabel("siStripMatchedRecHits","stereoRecHit", stereoHits);
   int totalStripHits = rphiHits->dataSize()+stereoHits->dataSize();
+  if (debug) cout << "nRPhiHits=" <<  rphiHits->dataSize() << " nStereoHits=" << stereoHits->dataSize() << " tot=" << totalStripHits << endl;
   str_isBarrel .resize(totalStripHits);
   str_isStereo .resize(totalStripHits);
   str_det      .resize(totalStripHits);
@@ -688,6 +769,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   str_process  .resize(totalStripHits);
   str_bunchXing.resize(totalStripHits);
   str_event    .resize(totalStripHits);
+  str_posFromTrack.resize(totalStripHits);
   str_x    .resize(totalStripHits);
   str_y    .resize(totalStripHits);
   str_z    .resize(totalStripHits);
@@ -703,6 +785,13 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   str_pxsim .resize(totalStripHits);
   str_pysim .resize(totalStripHits);
   str_pzsim .resize(totalStripHits);
+  str_pathprop .resize(totalStripHits);
+  str_xsimprop .resize(totalStripHits);
+  str_ysimprop .resize(totalStripHits);
+  str_zsimprop .resize(totalStripHits);
+  str_pxsimprop.resize(totalStripHits);
+  str_pysimprop.resize(totalStripHits);
+  str_pzsimprop.resize(totalStripHits);
   str_eloss.resize(totalStripHits);
   str_radL .resize(totalStripHits);
   str_bbxi .resize(totalStripHits);
@@ -721,6 +810,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int processType = -999;
       int bunchCrossing = -999;
       int event = -999;
+      GlobalPoint tpPos = GlobalPoint(0,0,0);
+      GlobalVector tpMom = GlobalVector(0,0,0);
+      int charge = 0;
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
       auto range=equal_range( clusterToTPMap.begin(), clusterToTPMap.end(), clusterTPpairWithDummyTP, clusterTPAssociationListGreater );
@@ -731,6 +823,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpRPhiList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
+	  charge = trackingParticle->charge();
+	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
+	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
 	  std::pair<TrackingParticleRef, TrackPSimHitRef> simHitTPpairWithDummyTP(trackingParticle,TrackPSimHitRef());
 	  //SimHit is dummy: for simHitTPAssociationListGreater sorting only the TP is needed
@@ -764,6 +859,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_process  [key] = processType;
       str_bunchXing[key] = bunchCrossing;
       str_event    [key] = event;
+      str_posFromTrack[key] = 0;
       str_x    [key] = ttrh->globalPosition().x();
       str_y    [key] = ttrh->globalPosition().y();
       str_z    [key] = ttrh->globalPosition().z();
@@ -782,6 +878,41 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
+
+      str_pathprop [key] = 0. ;
+      str_xsimprop [key] = 0. ;
+      str_ysimprop [key] = 0. ;
+      str_zsimprop [key] = 0. ;
+      str_pxsimprop [key] = 0. ;
+      str_pysimprop [key] = 0. ;
+      str_pzsimprop [key] = 0. ;
+      if (/*simHitPos.perp()>*/0) {
+	//test analytical propagation
+	Propagator* ap = new AnalyticalPropagator(&*theMF);
+	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
+	AlgebraicSymMatrix66 err;
+	err[0][0] = tpPos.x()*tpPos.x();
+	err[1][1] = tpPos.y()*tpPos.y();
+	err[2][2] = tpPos.z()*tpPos.z();
+	err[3][3] = tpMom.x()*tpMom.x();
+	err[4][4] = tpMom.y()*tpMom.y();
+	err[5][5] = tpMom.z()*tpMom.z();
+	fts.setCartesianError(err);
+	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
+	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
+
+	str_pathprop [key] = ap_result.second ;
+	if (ap_result.first.isValid()) {
+	  str_xsimprop [key] = ap_result.first.globalPosition().x() ;
+	  str_ysimprop [key] = ap_result.first.globalPosition().y() ;
+	  str_zsimprop [key] = ap_result.first.globalPosition().z() ;
+	  str_pxsimprop [key] = ap_result.first.globalMomentum().x() ;
+	  str_pysimprop [key] = ap_result.first.globalMomentum().y() ;
+	  str_pzsimprop [key] = ap_result.first.globalMomentum().z() ;
+	}
+      }
+
+
       if (debug) cout << "stripRPhiHit cluster=" << key
 		      << " subdId=" << hitId.subdetId()
 		      << " lay=" << lay
@@ -813,6 +944,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int processType = -999;
       int bunchCrossing = -999;
       int event = -999;
+      GlobalPoint tpPos = GlobalPoint(0,0,0);
+      GlobalVector tpMom = GlobalVector(0,0,0);
+      int charge = 0;
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
       auto range=equal_range( clusterToTPMap.begin(), clusterToTPMap.end(), clusterTPpairWithDummyTP, clusterTPAssociationListGreater );
@@ -823,6 +957,9 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpStereoList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
+	  charge = trackingParticle->charge();
+	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
+	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
 	  std::pair<TrackingParticleRef, TrackPSimHitRef> simHitTPpairWithDummyTP(trackingParticle,TrackPSimHitRef());
 	  //SimHit is dummy: for simHitTPAssociationListGreater sorting only the TP is needed
@@ -874,6 +1011,40 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_eloss[key] = energyLoss;
       str_radL [key] = ttrh->surface()->mediumProperties().radLen();
       str_bbxi [key] = ttrh->surface()->mediumProperties().xi();
+
+      str_pathprop [key] = 0. ;
+      str_xsimprop [key] = 0. ;
+      str_ysimprop [key] = 0. ;
+      str_zsimprop [key] = 0. ;
+      str_pxsimprop [key] = 0. ;
+      str_pysimprop [key] = 0. ;
+      str_pzsimprop [key] = 0. ;
+      if (simHitPos.perp()>0) {
+	//test analytical propagation
+	Propagator* ap = new AnalyticalPropagator(&*theMF);
+	FreeTrajectoryState fts(tpPos,tpMom,charge,&*theMF);
+	AlgebraicSymMatrix66 err;
+	err[0][0] = tpPos.x()*tpPos.x();
+	err[1][1] = tpPos.y()*tpPos.y();
+	err[2][2] = tpPos.z()*tpPos.z();
+	err[3][3] = tpMom.x()*tpMom.x();
+	err[4][4] = tpMom.y()*tpMom.y();
+	err[5][5] = tpMom.z()*tpMom.z();
+	fts.setCartesianError(err);
+	const Cylinder cylinder(simHitPos.perp(),Surface::PositionType(),Surface::RotationType());
+	std::pair<TrajectoryStateOnSurface,double> ap_result = ap->propagateWithPath(fts,cylinder);	
+
+	str_pathprop [key] = ap_result.second ;
+	if (ap_result.first.isValid()) {
+	  str_xsimprop [key] = ap_result.first.globalPosition().x() ;
+	  str_ysimprop [key] = ap_result.first.globalPosition().y() ;
+	  str_zsimprop [key] = ap_result.first.globalPosition().z() ;
+	  str_pxsimprop [key] = ap_result.first.globalMomentum().x() ;
+	  str_pysimprop [key] = ap_result.first.globalMomentum().y() ;
+	  str_pzsimprop [key] = ap_result.first.globalMomentum().z() ;
+	}
+      }
+
       if (debug) cout << "stripStereoHit cluster=" << key
 		      << " subdId=" << hitId.subdetId()
 		      << " lay=" << lay
@@ -908,6 +1079,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       glu_detId    .push_back( hitId.rawId() );
       glu_monoIdx  .push_back( hit->monoHit().cluster().key() );
       glu_stereoIdx.push_back( hit->stereoHit().cluster().key() );
+      glu_posFromTrack.push_back( 0 );
       glu_x        .push_back( ttrh->globalPosition().x() );
       glu_y        .push_back( ttrh->globalPosition().y() );
       glu_z        .push_back( ttrh->globalPosition().z() );
@@ -937,36 +1109,110 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     Handle<TrajectorySeedCollection> seeds;
     iEvent.getByLabel(seedTag_,seeds);
     TString label = seedTag_.label();
-    if (debug) cout << "NEW SEED LABEL: " << label << " size: " << seeds->size();
     //format label to match algoName
     label.ReplaceAll("Seeds","");
     label.ReplaceAll("muonSeeded","muonSeededStep");
-    if (debug) cout << " algo=" << TrackBase::algoByName(label.Data()) << endl;
     int algo = TrackBase::algoByName(label.Data());
     algo_offset[algo] = offset;
+    if (debug) cout << "NEW SEED LABEL: " << label << " algo=" << algo << " size: " << seeds->size() << " offset=" << algo_offset[algo] << " see_x.size()=" << see_x.size() << endl;
     int seedCount = 0;
     for(TrajectorySeedCollection::const_iterator itSeed = seeds->begin(); itSeed != seeds->end(); ++itSeed,++seedCount) {
       TransientTrackingRecHit::RecHitPointer lastRecHit = theTTRHBuilder->build(&*(itSeed->recHits().second-1));
       TrajectoryStateOnSurface state = trajectoryStateTransform::transientState( itSeed->startingState(), lastRecHit->surface(), theMF.product());
+      //convert seed into track to access parameters
+      TrajectoryStateClosestToBeamLine tsAtClosestApproachSeed = tscblBuilder(*state.freeState(),bs);//as in TrackProducerAlgorithm
+      if(!(tsAtClosestApproachSeed.isValid())){
+        cout<<"TrajectoryStateClosestToBeamLine for seed not valid"<<endl;;
+	see_x       .push_back( -9999. );
+	see_y       .push_back( -9999. );
+	see_z       .push_back( -9999. );
+	see_px      .push_back( -9999. );
+	see_py      .push_back( -9999. );
+	see_pz      .push_back( -9999. );
+	see_cov00   .push_back( -9999. );
+	see_cov01   .push_back( -9999. );
+	see_cov02   .push_back( -9999. );
+	see_cov03   .push_back( -9999. );
+	see_cov04   .push_back( -9999. );
+	see_cov05   .push_back( -9999. );
+	see_cov11   .push_back( -9999. );
+	see_cov12   .push_back( -9999. );
+	see_cov13   .push_back( -9999. );
+	see_cov14   .push_back( -9999. );
+	see_cov15   .push_back( -9999. );
+	see_cov22   .push_back( -9999. );
+	see_cov23   .push_back( -9999. );
+	see_cov24   .push_back( -9999. );
+	see_cov25   .push_back( -9999. );
+	see_cov33   .push_back( -9999. );
+	see_cov34   .push_back( -9999. );
+	see_cov35   .push_back( -9999. );
+	see_cov44   .push_back( -9999. );
+	see_cov45   .push_back( -9999. );
+	see_cov55   .push_back( -9999. );
+	see_pt      .push_back( -9999. );
+	see_eta     .push_back( -9999. );
+	see_phi     .push_back( -9999. );
+	see_q       .push_back( 0 );
+	see_nValid  .push_back( 0 );
+	see_dxy     .push_back( -9999. );
+	see_dz      .push_back( -9999. );
+	see_ptErr   .push_back( -9999. );
+	see_etaErr  .push_back( -9999. );
+	see_phiErr  .push_back( -9999. );
+	see_dxyErr  .push_back( -9999. );
+	see_dzErr   .push_back( -9999. );
+	see_algo    .push_back(algo);
+	vector<int> pixelIdx;
+	vector<int> gluedIdx;
+	vector<int> stripIdx;
+	see_pixelIdx.push_back( pixelIdx );
+	see_gluedIdx.push_back( gluedIdx );
+	see_stripIdx.push_back( stripIdx );
+	see_nPixel  .push_back( pixelIdx.size() );
+	see_nGlued  .push_back( gluedIdx.size() );
+	see_nStrip  .push_back( stripIdx.size() );
+	see_chi2    .push_back( -9999. );
+	offset++;
+        continue;
+      }
       int charge = state.charge();
       float pt  = state.globalParameters().momentum().perp();
       float eta = state.globalParameters().momentum().eta();
       float phi = state.globalParameters().momentum().phi();
       int nHits = itSeed->nHits();
+      see_x       .push_back( state.globalParameters().position().x() );
+      see_y       .push_back( state.globalParameters().position().y() );
+      see_z       .push_back( state.globalParameters().position().z() );
       see_px      .push_back( state.globalParameters().momentum().x() );
       see_py      .push_back( state.globalParameters().momentum().y() );
       see_pz      .push_back( state.globalParameters().momentum().z() );
+      see_cov00   .push_back( state.cartesianError().matrix()[0][0] );
+      see_cov01   .push_back( state.cartesianError().matrix()[0][1] );
+      see_cov02   .push_back( state.cartesianError().matrix()[0][2] );
+      see_cov03   .push_back( state.cartesianError().matrix()[0][3] );
+      see_cov04   .push_back( state.cartesianError().matrix()[0][4] );
+      see_cov05   .push_back( state.cartesianError().matrix()[0][5] );
+      see_cov11   .push_back( state.cartesianError().matrix()[1][1] );
+      see_cov12   .push_back( state.cartesianError().matrix()[1][2] );
+      see_cov13   .push_back( state.cartesianError().matrix()[1][3] );
+      see_cov14   .push_back( state.cartesianError().matrix()[1][4] );
+      see_cov15   .push_back( state.cartesianError().matrix()[1][5] );
+      see_cov22   .push_back( state.cartesianError().matrix()[2][2] );
+      see_cov23   .push_back( state.cartesianError().matrix()[2][3] );
+      see_cov24   .push_back( state.cartesianError().matrix()[2][4] );
+      see_cov25   .push_back( state.cartesianError().matrix()[2][5] );
+      see_cov33   .push_back( state.cartesianError().matrix()[3][3] );
+      see_cov34   .push_back( state.cartesianError().matrix()[3][4] );
+      see_cov35   .push_back( state.cartesianError().matrix()[3][5] );
+      see_cov44   .push_back( state.cartesianError().matrix()[4][4] );
+      see_cov45   .push_back( state.cartesianError().matrix()[4][5] );
+      see_cov55   .push_back( state.cartesianError().matrix()[5][5] );
       see_pt      .push_back( pt );
       see_eta     .push_back( eta );
       see_phi     .push_back( phi );
       see_q       .push_back( charge );
       see_nValid  .push_back( nHits );
-      //convert seed into track to access parameters
-      TrajectoryStateClosestToBeamLine tsAtClosestApproachSeed = tscblBuilder(*state.freeState(),bs);//as in TrackProducerAlgorithm
-      if(!(tsAtClosestApproachSeed.isValid())){
-        cout<<"TrajectoryStateClosestToBeamLine for seed not valid"<<endl;;
-        continue;
-      }
       const reco::TrackBase::Point vSeed1(tsAtClosestApproachSeed.trackStateAtPCA().position().x(),
 					  tsAtClosestApproachSeed.trackStateAtPCA().position().y(),
 					  tsAtClosestApproachSeed.trackStateAtPCA().position().z());
@@ -1094,8 +1340,10 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     RefToBase<Track> itTrack(tracks, i);
     TrajTrackAssociationRef tt(trajH, i);
     auto traj = tt->key;
-    cout << traj->measurements().size() << endl;
+    //cout << traj->measurements().size() << endl;
     for ( auto tm : traj->measurements() ) {
+      //debug material effects
+      /*
       MultipleScatteringUpdator msu(0.105);
       TrajectoryStateOnSurface us = tm.updatedState();
       LocalTrajectoryParameters lp = us.localParameters();
@@ -1108,7 +1356,12 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       AlgebraicSymMatrix66 egloNew = us.cartesianError().matrix();
       cout << "dcxx=" << egloNew(0,0)-eglo(0,0) << " dcyy=" << egloNew(1,1)-eglo(1,1) << " dczz=" << egloNew(2,2)-eglo(2,2) << endl;
       cout << "dcpxpx=" << egloNew(3,3)-eglo(3,3) << " dcpypy=" << egloNew(4,4)-eglo(4,4) << " dcpzpz=" << egloNew(5,5)-eglo(5,5) << endl;
-
+      */
+      // if (tm.recHitR().isValid()) cout << "hit GP=" 
+      // 				       << tm.recHitR().globalPosition() 
+      // 				       << " \n" 
+      // 				       << tm.recHitR().globalPositionError().matrix()
+      // 				       << endl;
     }
 
     int nSimHits = 0;
@@ -1152,8 +1405,10 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     trk_nPixel   .push_back(hp.numberOfValidPixelHits());
     trk_nStrip   .push_back(hp.numberOfValidStripHits());
     trk_n3DLay   .push_back(hp.numberOfValidStripLayersWithMonoAndStereo()+hp.pixelLayersWithMeasurement());
+    trk_nLay     .push_back(hp.trackerLayersWithMeasurement());
     trk_algo     .push_back(itTrack->algo());
     trk_isHP     .push_back(itTrack->quality(TrackBase::highPurity));
+    assert( algo_offset[itTrack->algo()] + itTrack->seedRef().key() < see_x.size());
     trk_seedIdx  .push_back( algo_offset[itTrack->algo()] + itTrack->seedRef().key() );
     trk_simIdx   .push_back(tpIdx);
     if (debug) { 
@@ -1172,10 +1427,13 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     }
     vector<int> pixelCluster;
     vector<int> stripCluster;
+    vector<int> gluedCluster;
     int nhit = 0;
-    for (trackingRecHit_iterator i=itTrack->recHitsBegin(); i!=itTrack->recHitsEnd(); i++){
+    for ( auto tm : traj->measurements() ) {
+      //for (trackingRecHit_iterator i=itTrack->recHitsBegin(); i!=itTrack->recHitsEnd(); i++){
       if (debug) cout << "hit #" << nhit;
-      TransientTrackingRecHit::RecHitPointer hit=theTTRHBuilder->build(&**i );
+      //TrackingRecHit* hit=*i;//no need for TTRHBuilder here, hit is already fitted from the track
+      auto hit=tm.recHit();
       DetId hitId = hit->geographicalId();
       if (debug) cout << " subdet=" << hitId.subdetId();
       if(hitId.det() == DetId::Tracker) {
@@ -1193,11 +1451,58 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	if (hit->isValid()) {
 	  //ugly... but works
 	  const BaseTrackerRecHit* bhit = dynamic_cast<const BaseTrackerRecHit*>(&*hit);
-	  if (debug) cout << " id: " << hitId.rawId() << " - globalPos =" << hit->globalPosition()
+	  if (debug) cout << " id: " << hitId.rawId() << " - globalPos =" << hit->globalPosition() //hit->globalPositionError().matrix()
 			  << " cluster=" << (bhit->firstClusterRef().isPixel() ? bhit->firstClusterRef().cluster_pixel().key() :  bhit->firstClusterRef().cluster_strip().key())
 			  << " eta,phi: " << hit->globalPosition().eta() << "," << hit->globalPosition().phi()  << endl;
-	  if (isPixel) pixelCluster.push_back( bhit->firstClusterRef().cluster_pixel().key() );
-	  else         stripCluster.push_back( bhit->firstClusterRef().cluster_strip().key() );
+	  if (isPixel) {
+	    int pixidx = bhit->firstClusterRef().cluster_pixel().key();
+	    pixelCluster.push_back( pixidx );
+	    // pix_posFromTrack[pixidx] = 1;
+	    // pix_x [pixidx] =  hit->globalPosition().x();
+	    // pix_y [pixidx] =  hit->globalPosition().y();
+	    // pix_z [pixidx] =  hit->globalPosition().z();
+	    // pix_xx[pixidx] =  hit->globalPositionError().cxx();
+	    // pix_xy[pixidx] =  hit->globalPositionError().cyx();
+	    // pix_yy[pixidx] =  hit->globalPositionError().cyy();
+	    // pix_yz[pixidx] =  hit->globalPositionError().czy();
+	    // pix_zz[pixidx] =  hit->globalPositionError().czz();
+	    // pix_zx[pixidx] =  hit->globalPositionError().czx();
+	  } else {  
+	    int monoidx = bhit->firstClusterRef().cluster_strip().key();
+	    if (bhit->isMatched()) {
+	      const SiStripMatchedRecHit2D* mhit = dynamic_cast<const SiStripMatchedRecHit2D*>(&*hit);
+	      int stereoidx = mhit->stereoClusterRef().cluster_strip().key();
+	      vector<pair<int,int> >::iterator pos = find( monoStereoClusterList.begin(), monoStereoClusterList.end(), make_pair(monoidx,stereoidx) );
+	      //if (debug) cout << "monoidx=" << monoidx << " stereoidx=" << stereoidx << " pos=" << pos-monoStereoClusterList.begin() << " end=" << monoStereoClusterList.end()-monoStereoClusterList.begin() << endl;
+	      assert(pos<monoStereoClusterList.end());
+	      int iglu = pos - monoStereoClusterList.begin();
+	      assert(iglu<int(glu_det.size()));
+	      assert(int(hitId.rawId())==glu_detId[iglu]);
+	      gluedCluster.push_back( iglu );
+	      glu_posFromTrack[iglu] = 1;
+	      glu_x [iglu] = hit->globalPosition().x();
+	      glu_y [iglu] = hit->globalPosition().y();
+	      glu_z [iglu] = hit->globalPosition().z();
+	      glu_xx[iglu] = hit->globalPositionError().cxx();
+	      glu_xy[iglu] = hit->globalPositionError().cyx();
+	      glu_yy[iglu] = hit->globalPositionError().cyy();
+	      glu_yz[iglu] = hit->globalPositionError().czy();
+	      glu_zz[iglu] = hit->globalPositionError().czz();
+	      glu_zx[iglu] = hit->globalPositionError().czx();	      
+	    } else {
+	      stripCluster.push_back( monoidx );
+	      // str_posFromTrack[monoidx] = 1;
+	      // str_x [monoidx] = hit->globalPosition().x();
+	      // str_y [monoidx] = hit->globalPosition().y();
+	      // str_z [monoidx] = hit->globalPosition().z();
+	      // str_xx[monoidx] = hit->globalPositionError().cxx();
+	      // str_xy[monoidx] = hit->globalPositionError().cyx();
+	      // str_yy[monoidx] = hit->globalPositionError().cyy();
+	      // str_yz[monoidx] = hit->globalPositionError().czy();
+	      // str_zz[monoidx] = hit->globalPositionError().czz();
+	      // str_zx[monoidx] = hit->globalPositionError().czx();
+	    }
+	  }
 	} else  {
 	  if (debug) cout << " - invalid hit" << endl;
 	  if (isPixel) pixelCluster.push_back( -1 );
@@ -1209,6 +1514,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     if (debug) cout << endl;
     trk_pixelIdx.push_back(pixelCluster);
     trk_stripIdx.push_back(stripCluster);
+    trk_gluedIdx.push_back(gluedCluster);
   }
 
   //tracking particles
@@ -1291,6 +1597,8 @@ void TrackingNtuple::beginJob() {
   fs->make<TTree>("tree","tree");
   t = fs->getObject<TTree>("tree");
 
+  //event
+  t->Branch("evt" , &evt , "evt/I");
   //tracks
   t->Branch("trk_px"       , &trk_px);
   t->Branch("trk_py"       , &trk_py);
@@ -1313,12 +1621,14 @@ void TrackingNtuple::beginJob() {
   t->Branch("trk_nPixel"   , &trk_nPixel  );
   t->Branch("trk_nStrip"   , &trk_nStrip  );
   t->Branch("trk_n3DLay"   , &trk_n3DLay  );
+  t->Branch("trk_nLay"     , &trk_nLay    );
   t->Branch("trk_algo"     , &trk_algo    );
   t->Branch("trk_isHP"     , &trk_isHP    );
   t->Branch("trk_seedIdx"  , &trk_seedIdx );
   t->Branch("trk_simIdx"   , &trk_simIdx  );
   t->Branch("trk_pixelIdx" , &trk_pixelIdx);
   t->Branch("trk_stripIdx" , &trk_stripIdx);
+  t->Branch("trk_gluedIdx" , &trk_gluedIdx);
   //sim tracks
   t->Branch("sim_px"       , &sim_px       );
   t->Branch("sim_py"       , &sim_py       );
@@ -1350,6 +1660,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("pix_process"   , &pix_process  );
   t->Branch("pix_bunchXing" , &pix_bunchXing);
   t->Branch("pix_event"     , &pix_event    );
+  t->Branch("pix_posFromTrack", &pix_posFromTrack    );
   t->Branch("pix_x"     , &pix_x    );
   t->Branch("pix_y"     , &pix_y    );
   t->Branch("pix_z"     , &pix_z    );
@@ -1387,6 +1698,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("str_process"   , &str_process  );
   t->Branch("str_bunchXing" , &str_bunchXing);
   t->Branch("str_event"     , &str_event    );
+  t->Branch("str_posFromTrack", &str_posFromTrack    );
   t->Branch("str_x"     , &str_x    );
   t->Branch("str_y"     , &str_y    );
   t->Branch("str_z"     , &str_z    );
@@ -1402,6 +1714,13 @@ void TrackingNtuple::beginJob() {
   t->Branch("str_pxsim"  , &str_pxsim );
   t->Branch("str_pysim"  , &str_pysim );
   t->Branch("str_pzsim"  , &str_pzsim );
+  t->Branch("str_pathprop"  , &str_pathprop );
+  t->Branch("str_xsimprop"  , &str_xsimprop );
+  t->Branch("str_ysimprop"  , &str_ysimprop );
+  t->Branch("str_zsimprop"  , &str_zsimprop );
+  t->Branch("str_pxsimprop"  , &str_pxsimprop );
+  t->Branch("str_pysimprop"  , &str_pysimprop );
+  t->Branch("str_pzsimprop"  , &str_pzsimprop );
   t->Branch("str_eloss" , &str_eloss);
   t->Branch("str_radL"  , &str_radL );
   t->Branch("str_bbxi"  , &str_bbxi );
@@ -1412,6 +1731,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("glu_detId"     , &glu_detId    );
   t->Branch("glu_monoIdx"   , &glu_monoIdx  );
   t->Branch("glu_stereoIdx" , &glu_stereoIdx);
+  t->Branch("glu_posFromTrack", &glu_posFromTrack    );
   t->Branch("glu_x"         , &glu_x        );
   t->Branch("glu_y"         , &glu_y        );
   t->Branch("glu_z"         , &glu_z        );
@@ -1431,9 +1751,33 @@ void TrackingNtuple::beginJob() {
   t->Branch("bsp_sigmay" , &bsp_sigmay , "bsp_sigmay/F");
   t->Branch("bsp_sigmaz" , &bsp_sigmaz , "bsp_sigmaz/F");
   //seeds
+  t->Branch("see_x"        , &see_x       );
+  t->Branch("see_y"        , &see_y       );
+  t->Branch("see_z"        , &see_z       );
   t->Branch("see_px"       , &see_px      );
   t->Branch("see_py"       , &see_py      );
   t->Branch("see_pz"       , &see_pz      );
+  t->Branch("see_cov00"    , &see_cov00   );
+  t->Branch("see_cov01"    , &see_cov01   );
+  t->Branch("see_cov02"    , &see_cov02   );
+  t->Branch("see_cov03"    , &see_cov03   );
+  t->Branch("see_cov04"    , &see_cov04   );
+  t->Branch("see_cov05"    , &see_cov05   );
+  t->Branch("see_cov11"    , &see_cov11   );
+  t->Branch("see_cov12"    , &see_cov12   );
+  t->Branch("see_cov13"    , &see_cov13   );
+  t->Branch("see_cov14"    , &see_cov14   );
+  t->Branch("see_cov15"    , &see_cov15   );
+  t->Branch("see_cov22"    , &see_cov22   );
+  t->Branch("see_cov23"    , &see_cov23   );
+  t->Branch("see_cov24"    , &see_cov24   );
+  t->Branch("see_cov25"    , &see_cov25   );
+  t->Branch("see_cov33"    , &see_cov33   );
+  t->Branch("see_cov34"    , &see_cov34   );
+  t->Branch("see_cov35"    , &see_cov35   );
+  t->Branch("see_cov44"    , &see_cov44   );
+  t->Branch("see_cov45"    , &see_cov45   );
+  t->Branch("see_cov55"    , &see_cov55   );
   t->Branch("see_pt"       , &see_pt      );
   t->Branch("see_eta"      , &see_eta     );
   t->Branch("see_phi"      , &see_phi     );
