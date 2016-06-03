@@ -342,10 +342,10 @@ int main() {
       err.At(4,4) = sim_py->at(isim)*sim_py->at(isim);
       err.At(5,5) = sim_pz->at(isim)*sim_pz->at(isim);
       TrackState state(sim_q->at(isim), pos, mom, err);
-#ifdef POLCOORD
-      //begin test polar coordinates, define POLCOORD in $(MICTESTDIR)/Config.h
-      state.convertFromCartesianToPolar();
-      //end test polar coordinates
+#ifdef CCSCOORD
+      //begin test CCS coordinates, define CCSCOORD in $(MICTESTDIR)/Config.h
+      state.convertFromCartesianToCCS();
+      //end test CCS coordinates
 #endif
       int hitIdxArr[Config::nLayers];
       std::fill_n(hitIdxArr, Config::nLayers, -1);//this is set afterwards
@@ -393,10 +393,10 @@ int main() {
       err.At(4,5) = see_cov45->at(is);
       err.At(5,5) = see_cov55->at(is);
       TrackState state(see_q->at(is), pos, mom, err);
-#ifdef POLCOORD
-      //begin test polar coordinates
-      state.convertFromCartesianToPolar();
-      //end test polar coordinates
+#ifdef CCSCOORD
+      //begin test CCS coordinates
+      state.convertFromCartesianToCCS();
+      //end test CCS coordinates
 #endif
       int hitIdxArr[Config::nLayers];
       std::fill_n(hitIdxArr, Config::nLayers, -1);//this is set afterwards
