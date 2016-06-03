@@ -13,8 +13,8 @@ process.source = cms.Source("PoolSource",
         'file:./SingleMuPt10/step2.root'
         #'file:./ZTT/step2.root'
         #'file:./TTbar/step2.root'
-        #'file:./TTbarPU10/step2.root'
-        #'file:./TTbarPU35/step2.root'
+        #'file:./TTbarPU10/step2_1000evt.root'
+        #'file:./TTbarPU35/step2_100evt.root'
     ),
     #skipEvents=cms.untracked.uint32(136)
 )
