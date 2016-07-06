@@ -2,7 +2,7 @@ from ROOT import TFile, gDirectory, TH1F, TH2F, TCanvas
 import math
 
 # open the file
-inputFile = TFile( 'ntuple_test_1GeV_10k.root' )
+inputFile = TFile( 'ntuple_test_10GeV_10k_split.root' )
 
 # retrieve the ntuple of interest
 trkTree = gDirectory.Get( 'trkTree/tree' )
@@ -13,11 +13,11 @@ h_r_mono = TH1F("h_r_mono","h_r_mono",1200,0,120)
 h_r_stereo = TH1F("h_r_stereo","h_r_stereo",1200,0,120)
 h_xy = TH2F("h_xy","h_xy",2400,-120,120,2400,-120,120)
 h_axy = TH2F("h_axy","h_axy",1200,0,120,1200,0,120)
-h_azr = TH2F("h_azr","h_azr",240,0,120,1200,0,120)
+h_azr = TH2F("h_azr","h_azr",600,0,300,1200,0,120)
 h_radL_axy = TH2F("h_radL_axy","h_radL_axy",1200,0,120,1200,0,120)
-h_radL_azr = TH2F("h_radL_azr","h_radL_azr",240,0,120,1200,0,120)
+h_radL_azr = TH2F("h_radL_azr","h_radL_azr",600,0,300,1200,0,120)
 h_bbxi_axy = TH2F("h_bbxi_axy","h_bbxi_axy",1200,0,120,1200,0,120)
-h_bbxi_azr = TH2F("h_bbxi_azr","h_bbxi_azr",240,0,120,1200,0,120)
+h_bbxi_azr = TH2F("h_bbxi_azr","h_bbxi_azr",600,0,300,1200,0,120)
 
 for jentry in xrange( entries ):
     
@@ -34,7 +34,7 @@ for jentry in xrange( entries ):
     ipix = -1
     for ipixx in trkTree.pix_x:
         ipix = ipix+1
-        if trkTree.pix_isBarrel[ipix]==0: continue
+        #if trkTree.pix_isBarrel[ipix]==0: continue
         x = trkTree.pix_x[ipix]
         y = trkTree.pix_y[ipix]
         z = trkTree.pix_z[ipix]
@@ -61,7 +61,7 @@ for jentry in xrange( entries ):
     istr = -1
     for istrx in trkTree.str_x:
         istr = istr+1
-        if trkTree.str_isBarrel[istr]==0: continue
+        #if trkTree.str_isBarrel[istr]==0: continue
         #if trkTree.str_isStereo[istr]==0: continue
         x = trkTree.str_x[istr]
         y = trkTree.str_y[istr]
@@ -90,4 +90,7 @@ for jentry in xrange( entries ):
 c1 = TCanvas("c1","c1",600,600)
 h_bbxi_azr.Divide(h_azr)
 h_bbxi_azr.Draw("colz")
+c2 = TCanvas("c2","c2",600,600)
+h_radL_azr.Divide(h_azr)
+h_radL_azr.Draw("colz")
 
