@@ -185,6 +185,7 @@ private:
   std::vector<int> pix_bunchXing;
   std::vector<int> pix_event    ;
   std::vector<int> pix_posFromTrack;
+  std::vector<int> pix_onTrack;
   std::vector<float> pix_x    ;
   std::vector<float> pix_y    ;
   std::vector<float> pix_z    ;
@@ -216,6 +217,7 @@ private:
   std::vector<int> str_bunchXing;
   std::vector<int> str_event    ;
   std::vector<int> str_posFromTrack;
+  std::vector<int> str_onTrack;
   std::vector<float> str_x    ;
   std::vector<float> str_y    ;
   std::vector<float> str_z    ;
@@ -242,6 +244,7 @@ private:
   std::vector<int> glu_monoIdx  ;
   std::vector<int> glu_stereoIdx;
   std::vector<int> glu_posFromTrack;
+  std::vector<int> glu_onTrack;
   std::vector<float> glu_x    ;
   std::vector<float> glu_y    ;
   std::vector<float> glu_z    ;
@@ -401,6 +404,7 @@ void TrackingNtuple::clearVariables() {
   pix_bunchXing.clear();
   pix_event    .clear();
   pix_posFromTrack.clear();
+  pix_onTrack.clear();
   pix_x    .clear();
   pix_y    .clear();
   pix_z    .clear();
@@ -432,6 +436,7 @@ void TrackingNtuple::clearVariables() {
   str_bunchXing.clear();
   str_event    .clear();
   str_posFromTrack.clear();
+  str_onTrack.clear();
   str_x    .clear();
   str_y    .clear();
   str_z    .clear();
@@ -458,6 +463,7 @@ void TrackingNtuple::clearVariables() {
   glu_monoIdx  .clear();
   glu_stereoIdx.clear();
   glu_posFromTrack.clear();
+  glu_onTrack.clear();
   glu_x        .clear();
   glu_y        .clear();
   glu_z        .clear();
@@ -589,7 +595,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int event = -999;
       GlobalPoint tpPos = GlobalPoint(0,0,0);
       GlobalVector tpMom = GlobalVector(0,0,0);
-      int charge = 0;
       //get the TP that produced the hit
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
@@ -601,7 +606,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpPixList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
-	  charge = trackingParticle->charge();
 	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
 	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
@@ -635,6 +639,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       pix_bunchXing.push_back( bunchCrossing );
       pix_event    .push_back( event );
       pix_posFromTrack.push_back( 0 );
+      pix_onTrack.push_back( 0 );
       pix_x    .push_back( ttrh->globalPosition().x() );
       pix_y    .push_back( ttrh->globalPosition().y() );
       pix_z    .push_back( ttrh->globalPosition().z() );
@@ -691,6 +696,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   str_bunchXing.resize(totalStripHits);
   str_event    .resize(totalStripHits);
   str_posFromTrack.resize(totalStripHits);
+  str_onTrack.resize(totalStripHits);
   str_x    .resize(totalStripHits);
   str_y    .resize(totalStripHits);
   str_z    .resize(totalStripHits);
@@ -726,7 +732,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int event = -999;
       GlobalPoint tpPos = GlobalPoint(0,0,0);
       GlobalVector tpMom = GlobalVector(0,0,0);
-      int charge = 0;
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
       auto range=equal_range( clusterToTPMap.begin(), clusterToTPMap.end(), clusterTPpairWithDummyTP, clusterTPAssociationListGreater );
@@ -737,7 +742,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpRPhiList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
-	  charge = trackingParticle->charge();
 	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
 	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
@@ -774,6 +778,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       str_bunchXing[key] = bunchCrossing;
       str_event    [key] = event;
       str_posFromTrack[key] = 0;
+      str_onTrack[key] = 0;
       str_x    [key] = ttrh->globalPosition().x();
       str_y    [key] = ttrh->globalPosition().y();
       str_z    [key] = ttrh->globalPosition().z();
@@ -826,7 +831,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       int event = -999;
       GlobalPoint tpPos = GlobalPoint(0,0,0);
       GlobalVector tpMom = GlobalVector(0,0,0);
-      int charge = 0;
       pair < OmniClusterRef, TrackingParticleRef > clusterTPpairWithDummyTP( hit->firstClusterRef(), TrackingParticleRef() );
       //note: TP is dummy in clusterTPpairWithDummyTP since for clusterTPAssociationListGreater sorting only the cluster is needed
       auto range=equal_range( clusterToTPMap.begin(), clusterToTPMap.end(), clusterTPpairWithDummyTP, clusterTPAssociationListGreater );
@@ -837,7 +841,6 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if( trackingParticle->numberOfHits() == 0 ) continue;
 	  firstMatchingTp = trackingParticle.key();
 	  tpStereoList.push_back( make_pair<int, int>( trackingParticle.key(), hit->cluster().key() ) );
-	  charge = trackingParticle->charge();
 	  tpPos = GlobalPoint(trackingParticle->vertex().x(),trackingParticle->vertex().y(),trackingParticle->vertex().z());
 	  tpMom = GlobalVector(trackingParticle->px(),trackingParticle->py(),trackingParticle->pz());
 	  //now get the corresponding sim hit
@@ -927,6 +930,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       glu_monoIdx  .push_back( hit->monoHit().cluster().key() );
       glu_stereoIdx.push_back( hit->stereoHit().cluster().key() );
       glu_posFromTrack.push_back( 0 );
+      glu_onTrack.push_back( 0 );
       glu_x        .push_back( ttrh->globalPosition().x() );
       glu_y        .push_back( ttrh->globalPosition().y() );
       glu_z        .push_back( ttrh->globalPosition().z() );
@@ -1188,7 +1192,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     TrajTrackAssociationRef tt(trajH, i);
     auto traj = tt->key;
     //cout << traj->measurements().size() << endl;
-    for ( auto tm : traj->measurements() ) {
+    //for ( auto tm : traj->measurements() ) {
       //debug material effects
       /*
       MultipleScatteringUpdator msu(0.105);
@@ -1209,7 +1213,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       // 				       << " \n" 
       // 				       << tm.recHitR().globalPositionError().matrix()
       // 				       << endl;
-    }
+    //}
 
     int nSimHits = 0;
     double sharedFraction = 0.;
@@ -1304,6 +1308,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	  if (isPixel) {
 	    int pixidx = bhit->firstClusterRef().cluster_pixel().key();
 	    pixelCluster.push_back( pixidx );
+	    pix_onTrack[pixidx] = 1;
 	    // pix_posFromTrack[pixidx] = 1;
 	    // pix_x [pixidx] =  hit->globalPosition().x();
 	    // pix_y [pixidx] =  hit->globalPosition().y();
@@ -1327,6 +1332,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	      assert(int(hitId.rawId())==glu_detId[iglu]);
 	      gluedCluster.push_back( iglu );
 	      glu_posFromTrack[iglu] = 1;
+	      glu_onTrack[iglu] = 1;
 	      glu_x [iglu] = hit->globalPosition().x();
 	      glu_y [iglu] = hit->globalPosition().y();
 	      glu_z [iglu] = hit->globalPosition().z();
@@ -1338,6 +1344,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	      glu_zx[iglu] = hit->globalPositionError().czx();	      
 	    } else {
 	      stripCluster.push_back( monoidx );
+	      str_onTrack[monoidx] = 1;
 	      // str_posFromTrack[monoidx] = 1;
 	      // str_x [monoidx] = hit->globalPosition().x();
 	      // str_y [monoidx] = hit->globalPosition().y();
@@ -1508,6 +1515,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("pix_bunchXing" , &pix_bunchXing);
   t->Branch("pix_event"     , &pix_event    );
   t->Branch("pix_posFromTrack", &pix_posFromTrack    );
+  t->Branch("pix_onTrack", &pix_onTrack    );
   t->Branch("pix_x"     , &pix_x    );
   t->Branch("pix_y"     , &pix_y    );
   t->Branch("pix_z"     , &pix_z    );
@@ -1539,6 +1547,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("str_bunchXing" , &str_bunchXing);
   t->Branch("str_event"     , &str_event    );
   t->Branch("str_posFromTrack", &str_posFromTrack    );
+  t->Branch("str_onTrack", &str_onTrack    );
   t->Branch("str_x"     , &str_x    );
   t->Branch("str_y"     , &str_y    );
   t->Branch("str_z"     , &str_z    );
@@ -1565,6 +1574,7 @@ void TrackingNtuple::beginJob() {
   t->Branch("glu_monoIdx"   , &glu_monoIdx  );
   t->Branch("glu_stereoIdx" , &glu_stereoIdx);
   t->Branch("glu_posFromTrack", &glu_posFromTrack    );
+  t->Branch("glu_onTrack", &glu_onTrack    );
   t->Branch("glu_x"         , &glu_x        );
   t->Branch("glu_y"         , &glu_y        );
   t->Branch("glu_z"         , &glu_z        );
