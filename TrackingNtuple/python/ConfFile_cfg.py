@@ -14,7 +14,7 @@ process.source = cms.Source("PoolSource",
         #'file:./ZTT/step2.root'
         #'file:./TTbar/step2.root'
         #'file:./TTbarPU10/step2_1000evt.root'
-        #'file:./TTbarPU35/step2_100evt.root'
+        #'file:./TTbarPU35/step2_1000evt.root'
     ),
     #skipEvents=cms.untracked.uint32(136)
 )
@@ -37,15 +37,15 @@ process.muonSeededSeedsInOut.cut = 'pt < 0.000001'
 process.muonSeededSeedsOutIn.cut = 'pt < 0.000001'
 
 #mock
-process.initialStepSeedLayers.layerList = cms.vstring('BPix1+BPix2+BPix3')
-process.initialStepSeeds.RegionFactoryPSet.RegionPSet.ptMin = 0.5
-process.initialStepTrackCandidates.doSeedingRegionRebuilding = False
-process.initialStepTrackCandidates.TrajectoryBuilder = 'CkfTrajectoryBuilder'
-process.initialStepTrackCandidates.TrajectoryBuilderPSet.refToPSet_ = 'CkfTrajectoryBuilder'
-process.CkfTrajectoryBuilder.estimator = cms.string('initialStepChi2Est')
-process.CkfTrajectoryBuilder.trajectoryFilter = cms.PSet(refToPSet_ = cms.string('initialStepTrajectoryFilter'))
-process.CkfTrajectoryBuilder.maxCand = cms.int32(3)
-#plus hack to navigation school to avoid moving from barrel to forward
+#process.initialStepSeedLayers.layerList = cms.vstring('BPix1+BPix2+BPix3')
+#process.initialStepSeeds.RegionFactoryPSet.RegionPSet.ptMin = 0.5
+#process.initialStepTrackCandidates.doSeedingRegionRebuilding = False
+#process.initialStepTrackCandidates.TrajectoryBuilder = 'CkfTrajectoryBuilder'
+#process.initialStepTrackCandidates.TrajectoryBuilderPSet.refToPSet_ = 'CkfTrajectoryBuilder'
+#process.CkfTrajectoryBuilder.estimator = cms.string('initialStepChi2Est')
+#process.CkfTrajectoryBuilder.trajectoryFilter = cms.PSet(refToPSet_ = cms.string('initialStepTrajectoryFilter'))
+#process.CkfTrajectoryBuilder.maxCand = cms.int32(3)
+#plus hack to navigation school to avoid moving from barrel to forward (comment out 3 lines below "Add closest reachable forward layer")
 
 #noSplit
 #process.initialStepTrackCandidates.useHitsSplitting = False
