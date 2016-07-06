@@ -38,9 +38,43 @@ public:
       return -1;
     }
   }  
+  int convertDiskNumber(int cmsswdet, int cmsswdisk, bool useMatched, int isStereo) {
+    if (cmsswdet==1 || cmsswdet==3 || cmsswdet==5) return -1;
+    if (cmsswdet==2) return cmsswdisk-1;
+    if (useMatched) {
+      return -1;
+    } else {
+      if (cmsswdet==4 && cmsswdisk==1 && isStereo==0) return 2;
+      if (cmsswdet==4 && cmsswdisk==1 && isStereo==1) return 3;
+      if (cmsswdet==4 && cmsswdisk==2 && isStereo==0) return 4;
+      if (cmsswdet==4 && cmsswdisk==2 && isStereo==1) return 5;
+      if (cmsswdet==4 && cmsswdisk==3 && isStereo==0) return 6;
+      if (cmsswdet==4 && cmsswdisk==3 && isStereo==1) return 7;
+      if (cmsswdet==6 && cmsswdisk==1 && isStereo==1) return 8;
+      if (cmsswdet==6 && cmsswdisk==1 && isStereo==0) return 9;
+      if (cmsswdet==6 && cmsswdisk==2 && isStereo==1) return 10;
+      if (cmsswdet==6 && cmsswdisk==2 && isStereo==0) return 11;
+      if (cmsswdet==6 && cmsswdisk==3 && isStereo==1) return 12;
+      if (cmsswdet==6 && cmsswdisk==3 && isStereo==0) return 13;
+      if (cmsswdet==6 && cmsswdisk==4 && isStereo==1) return 14;
+      if (cmsswdet==6 && cmsswdisk==4 && isStereo==0) return 15;
+      if (cmsswdet==6 && cmsswdisk==5 && isStereo==1) return 16;
+      if (cmsswdet==6 && cmsswdisk==5 && isStereo==0) return 17;
+      if (cmsswdet==6 && cmsswdisk==6 && isStereo==1) return 18;
+      if (cmsswdet==6 && cmsswdisk==6 && isStereo==0) return 19;
+      if (cmsswdet==6 && cmsswdisk==7 && isStereo==1) return 20;
+      if (cmsswdet==6 && cmsswdisk==7 && isStereo==0) return 21;
+      if (cmsswdet==6 && cmsswdisk==8 && isStereo==1) return 22;
+      if (cmsswdet==6 && cmsswdisk==8 && isStereo==0) return 23;
+      if (cmsswdet==6 && cmsswdisk==9 && isStereo==1) return 24;
+      if (cmsswdet==6 && cmsswdisk==9 && isStereo==0) return 25;
+      return -1;
+    }
+  }
 };
 
 bool useMatched = false;
+bool doEndcap = true;//otherwise do barrel, both at the same time not supported for now
 
 int main() {
 
@@ -54,18 +88,22 @@ int main() {
   int nhitstot[Config::nLayers];
   std::fill_n(nhitstot, Config::nLayers, 0);
 
+  TString outfilename = "";
+
+  // TFile* f = TFile::Open("./ntuple_test_1GeV_10k_split.root"); maxevt = 3000;outfilename = "cmssw_3kxSingleMu1GeV_split_endcap.bin";
+  TFile* f = TFile::Open("./ntuple_test_10GeV_10k_split.root"); maxevt = 3000;outfilename = "cmssw_3kxSingleMu10GeV_split_endcap.bin";
   //TFile* f = TFile::Open("./ntuple_test_1GeV_10k.root");
-  // TFile* f = TFile::Open(useMatched ? "./ntuple_test_1GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_1GeV_10k_split_mock_noFWD.root");maxevt = 3000;
-  // TFile* f = TFile::Open(useMatched ? "./ntuple_test_10GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_10GeV_10k_split_mock_noFWD.root");maxevt = 3000;
-  // TFile* f = TFile::Open("./ntuple_test_ZTT_split_mock_noFWD.root");assert(useMatched==false);maxevt = 500;
-  // TFile* f = TFile::Open("./ntuple_test_TTbar_split_mock_noFWD.root");assert(useMatched==false);maxevt = 500;
-  // TFile* f = TFile::Open("./ntuple_test_TTbarPU10_split_mock_noFWD.root");assert(useMatched==false);maxevt = 10;
-  TFile* f = TFile::Open("./ntuple_test_TTbarPU35_split_mock_noFWD.root");assert(useMatched==false);maxevt = 10;
+  // TFile* f = TFile::Open(useMatched ? "./ntuple_test_1GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_1GeV_10k_split_mock_noFWD.root");maxevt = 3000;outfilename = (useMatched ? "cmssw_3kxSingleMu1GeV_polar_noSplit_mock_noFWD.bin" : "cmssw_3kxSingleMu1GeV_polar_split_mock_noFWD.bin");
+  // TFile* f = TFile::Open(useMatched ? "./ntuple_test_10GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_10GeV_10k_split_mock_noFWD.root");maxevt = 3000;outfilename = (useMatched ? "cmssw_3kxSingleMu10GeV_polar_noSplit_mock_noFWD.bin" : "cmssw_3kxSingleMu10GeV_polar_split_mock_noFWD.bin");
+  // TFile* f = TFile::Open("./ntuple_test_ZTT_split_mock_noFWD.root");assert(useMatched==false);maxevt = 500;outfilename = "cmssw_500xZTT_polar_split_mock_noFWD.bin";
+  // TFile* f = TFile::Open("./ntuple_test_TTbar_split_mock_noFWD.root");assert(useMatched==false);maxevt = 500;outfilename = "cmssw_500xTTbar_polar_split_mock_noFWD.bin";
+  // TFile* f = TFile::Open("./ntuple_test_TTbarPU10_split_mock_noFWD.root");assert(useMatched==false);maxevt = 100;outfilename = "cmssw_100xTTbarPU10_polar_split_mock_noFWD.bin";
+  // TFile* f = TFile::Open("./ntuple_test_TTbarPU35_split_mock_noFWD.root");assert(useMatched==false);maxevt = 100;outfilename = "cmssw_100xTTbarPU35_polar_split_mock_noFWD.bin";
   
   TTree* t = (TTree*) f->Get("trkTree/tree");
 
   FILE * fp;
-  fp = fopen ("simtracks.bin", "wb");
+  fp = fopen (outfilename.Data(), "wb");
 
   int evt;
   t->SetBranchAddress("evt",&evt);
@@ -183,6 +221,7 @@ int main() {
   vector<int>*    pix_particle = 0;
   vector<int>*    pix_process = 0;
   vector<int>*    pix_posFromTrack = 0;
+  vector<int>*    pix_onTrack = 0;
   vector<float>*  pix_x = 0;
   vector<float>*  pix_y = 0;
   vector<float>*  pix_z = 0;
@@ -198,6 +237,7 @@ int main() {
   t->SetBranchAddress("pix_particle",&pix_particle);
   t->SetBranchAddress("pix_process",&pix_process);
   t->SetBranchAddress("pix_posFromTrack",&pix_posFromTrack);
+  t->SetBranchAddress("pix_onTrack",&pix_onTrack);
   t->SetBranchAddress("pix_x",&pix_x);
   t->SetBranchAddress("pix_y",&pix_y);
   t->SetBranchAddress("pix_z",&pix_z);
@@ -215,6 +255,7 @@ int main() {
   vector<int>*    glu_lay = 0;
   vector<int>*    glu_det = 0;
   vector<int>*    glu_posFromTrack = 0;
+  vector<int>*    glu_onTrack = 0;
   vector<float>*  glu_x = 0;
   vector<float>*  glu_y = 0;
   vector<float>*  glu_z = 0;
@@ -231,6 +272,7 @@ int main() {
     t->SetBranchAddress("glu_lay",&glu_lay);
     t->SetBranchAddress("glu_det",&glu_det);
     t->SetBranchAddress("glu_posFromTrack",&glu_posFromTrack);
+    t->SetBranchAddress("glu_onTrack",&glu_onTrack);
     t->SetBranchAddress("glu_x",&glu_x);
     t->SetBranchAddress("glu_y",&glu_y);
     t->SetBranchAddress("glu_z",&glu_z);
@@ -249,6 +291,7 @@ int main() {
   vector<int>*    str_particle = 0;
   vector<int>*    str_process = 0;
   vector<int>*    str_posFromTrack = 0;
+  vector<int>*    str_onTrack = 0;
   vector<float>*  str_x = 0;
   vector<float>*  str_y = 0;
   vector<float>*  str_z = 0;
@@ -266,6 +309,7 @@ int main() {
   t->SetBranchAddress("str_particle",&str_particle);
   t->SetBranchAddress("str_process",&str_process);
   t->SetBranchAddress("str_posFromTrack",&str_posFromTrack);
+  t->SetBranchAddress("str_onTrack",&str_onTrack);
   t->SetBranchAddress("str_x",&str_x);
   t->SetBranchAddress("str_y",&str_y);
   t->SetBranchAddress("str_z",&str_z);
@@ -310,8 +354,13 @@ int main() {
 	for (int ihit = 0; ihit < trk_pixelIdx->at(trkIdx).size(); ++ihit) {
 	  int ipix = trk_pixelIdx->at(trkIdx).at(ihit);
 	  if (ipix<0) continue;
-	  int cmsswlay = lnc.convertLayerNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
-	  if (cmsswlay>=0 && cmsswlay<Config::nLayers) hitlay[cmsswlay]++;
+	  if (doEndcap) {
+	    int cmsswdisk = lnc.convertDiskNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
+	    if (cmsswdisk>=0 && cmsswdisk<Config::nLayers) hitlay[cmsswdisk]++;
+	  } else {
+	    int cmsswlay = lnc.convertLayerNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
+	    if (cmsswlay>=0 && cmsswlay<Config::nLayers) hitlay[cmsswlay]++;
+	  }
 	}
 	if (useMatched) {
 	  for (int ihit = 0; ihit < trk_gluedIdx->at(trkIdx).size(); ++ihit) {
@@ -324,8 +373,13 @@ int main() {
 	for (int ihit = 0; ihit < trk_stripIdx->at(trkIdx).size(); ++ihit) {
 	  int istr = trk_stripIdx->at(trkIdx).at(ihit);
 	  if (istr<0) continue;
-	  int cmsswlay = lnc.convertLayerNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
-	  if (cmsswlay>=0 && cmsswlay<Config::nLayers) hitlay[cmsswlay]++;
+	  if (doEndcap) {
+	    int cmsswdisk = lnc.convertDiskNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
+	    if (cmsswdisk>=0 && cmsswdisk<Config::nLayers) hitlay[cmsswdisk]++;
+	  } else {
+	    int cmsswlay = lnc.convertLayerNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
+	    if (cmsswlay>=0 && cmsswlay<Config::nLayers) hitlay[cmsswlay]++;
+	  }
 	}
 	for (int i=0;i<Config::nLayers;i++) if (hitlay[i]>0) nlay++;
       }
@@ -418,10 +472,17 @@ int main() {
     int totHits = 0;
     layerHits_.resize(Config::nLayers);
     for (int ipix = 0; ipix < pix_lay->size(); ++ipix) {
-      if (pix_isBarrel->at(ipix)==0) continue;
+      int ilay = -1;
+      if (doEndcap) {
+	if (pix_isBarrel->at(ipix)==1) continue;
+	ilay = lnc.convertDiskNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
+      } else {
+	if (pix_isBarrel->at(ipix)==0) continue;
+	ilay = lnc.convertLayerNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
+      }
+      if (ilay<0) continue;
       int simTkIdx = -1;
       if (pix_simTrkIdx->at(ipix)>=0) simTkIdx = simTrackIdx_[pix_simTrkIdx->at(ipix)];
-      int ilay = lnc.convertLayerNumber((pix_isBarrel->at(ipix)?1:2),pix_lay->at(ipix),useMatched,-1);
       //cout << Form("pix lay=%i bar=%i x=(%6.3f, %6.3f, %6.3f)",ilay+1,pix_isBarrel->at(ipix),pix_x->at(ipix),pix_y->at(ipix),pix_z->at(ipix)) << endl;
       SVector3 pos(pix_x->at(ipix),pix_y->at(ipix),pix_z->at(ipix));
       SMatrixSym33 err;
@@ -473,13 +534,20 @@ int main() {
     vector<int> strIdx;
     strIdx.resize(str_lay->size());
     for (int istr = 0; istr < str_lay->size(); ++istr) {
-      int ilay = lnc.convertLayerNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
-      if (str_isBarrel->at(istr)==0) continue;
-      if (useMatched && str_isStereo->at(istr)) continue;
+      int ilay = -1;
+      if (doEndcap) {
+	if (str_isBarrel->at(istr)==1) continue;
+	ilay = lnc.convertDiskNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
+      } else {
+	if (str_isBarrel->at(istr)==0) continue;
+	ilay = lnc.convertLayerNumber(str_det->at(istr),str_lay->at(istr),useMatched,str_isStereo->at(istr));
+	if (useMatched && str_isStereo->at(istr)) continue;
+      }
       if (ilay==-1 || ilay>=Config::nLayers) continue;
       int simTkIdx = -1;
       if (str_simTrkIdx->at(istr)>=0) simTkIdx = simTrackIdx_[str_simTrkIdx->at(istr)];
-      //cout << Form("str lay=%i istr=%i tridx=%i bar=%i x=(%6.3f, %6.3f, %6.3f) r=%6.3f",ilay+1,istr,str_simTrkIdx->at(istr),str_isBarrel->at(istr),str_x->at(istr),str_y->at(istr),str_z->at(istr),sqrt(pow(str_x->at(istr),2)+pow(str_y->at(istr),2))) << endl;
+      //if (str_onTrack->at(istr)==0) continue;//do not consider hits that are not on track!
+      //cout << Form("str lay=%i istr=%i tridx=%i bar=%i x=(%6.3f, %6.3f, %6.3f) r=%6.3f proc=%i part=%i onTrk=%i isStereo=%i",ilay+1,istr,str_simTrkIdx->at(istr),str_isBarrel->at(istr),str_x->at(istr),str_y->at(istr),str_z->at(istr),sqrt(pow(str_x->at(istr),2)+pow(str_y->at(istr),2)),str_process->at(istr),str_particle->at(istr),str_onTrack->at(istr),str_isStereo->at(istr)) << endl;
       SVector3 pos(str_x->at(istr),str_y->at(istr),str_z->at(istr));
       SMatrixSym33 err;
       err.At(0,0) = str_xx->at(istr);
@@ -543,7 +611,7 @@ int main() {
 
 
     for (int i=0;i<ns;++i) {
-      printf("seed id=%i label=%i q=%2i p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f)\n",i,seedTracks_[i].label(),seedTracks_[i].charge(),seedTracks_[i].px(),seedTracks_[i].py(),seedTracks_[i].pz(),seedTracks_[i].x(),seedTracks_[i].y(),seedTracks_[i].z());
+      printf("seed id=%i label=%i q=%2i pT=%6.3f p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f)\n",i,seedTracks_[i].label(),seedTracks_[i].charge(),seedTracks_[i].pT(),seedTracks_[i].px(),seedTracks_[i].py(),seedTracks_[i].pz(),seedTracks_[i].x(),seedTracks_[i].y(),seedTracks_[i].z());
       for (int ih=0;ih<3;++ih) printf("seed #%i hit #%i idx=%i\n",i,ih,seedTracks_[i].getHitIdx(ih));
     }
 
