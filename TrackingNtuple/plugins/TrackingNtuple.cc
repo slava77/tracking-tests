@@ -1041,7 +1041,7 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	TransientTrackingRecHit::RecHitPointer recHit = theTTRHBuilder->build(&*hit);
 	int subid = recHit->geographicalId().subdetId();
 	if (subid == (int) PixelSubdetector::PixelBarrel || subid == (int) PixelSubdetector::PixelEndcap) {
-	  const BaseTrackerRecHit* bhit = dynamic_cast<const BaseTrackerRecHit*>(&*recHit);
+	  const BaseTrackerRecHit* bhit = dynamic_cast<const BaseTrackerRecHit*>(&*hit);
 	  pixelIdx.push_back( bhit->firstClusterRef().cluster_pixel().key() );
 	} else {
 	  if (trackerHitRTTI::isMatched(*recHit)) {
