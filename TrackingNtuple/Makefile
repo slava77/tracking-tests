@@ -5,7 +5,7 @@ else
 all: 	build
 
 BASEDIR = ./
-MICTESTDIR = /home/cerati/mictest
+MICTESTDIR =/afs/cern.ch/work/s/slava77/cms/mictest-2016H2
 INCLUDE = $(shell root-config --cflags) -I$(BASEDIR) -I$(MICTESTDIR)
 ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lEG -lGenVector
 
@@ -23,7 +23,7 @@ EXE = writeMemoryFile
 #
 
 $(EXE): ${SOURCES} ${MICTESTSOURCES} ${MICTESTSHEADER}
-	$(CXX) -o $@ ${SOURCES} $(MICTESTOBJECTS) $(ROOTLIBS)
+	$(CXX) -o $@ ${INCLUDE} ${SOURCES} $(MICTESTOBJECTS) $(ROOTLIBS)
 
 build:  $(EXE)
 
