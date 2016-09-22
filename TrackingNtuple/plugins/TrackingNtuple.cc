@@ -1376,10 +1376,10 @@ void TrackingNtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   sort( tpPixList.begin(), tpPixList.end(), intIntListGreater );
   sort( tpRPhiList.begin(), tpRPhiList.end(), intIntListGreater );
   sort( tpStereoList.begin(), tpStereoList.end(), intIntListGreater );
+  const reco::SimToRecoCollection simRecColl = associatorByHits->associateSimToReco(tracks,TPCollectionH,&iEvent,&iSetup);
   for (auto itp = tPC.begin(); itp != tPC.end(); ++itp) {
     TrackingParticleRef tp(TPCollectionH,itp-tPC.begin());
     if (debug) cout << "tracking particle pt=" << tp->pt() << " eta=" << tp->eta() << " phi=" << tp->phi() << endl;
-    reco::SimToRecoCollection simRecColl = associatorByHits->associateSimToReco(tracks,TPCollectionH,&iEvent,&iSetup);
     bool isRecoMatched(false);
     int tkIdx = -1;
     float sharedFraction = -1;
