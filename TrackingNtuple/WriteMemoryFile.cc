@@ -91,7 +91,7 @@ int main() {
   TString outfilename = "";
 
   // TFile* f = TFile::Open("./ntuple_test_1GeV_10k_split.root"); maxevt = 3000;outfilename = "cmssw_3kxSingleMu1GeV_split_endcap.bin";
-  TFile* f = TFile::Open(getenv("TKFILE_IN")); maxevt = 3000;outfilename = getenv("TKFILE_OUT");
+  TFile* f = TFile::Open(getenv("TKFILE_IN")); maxevt = 30000;outfilename = getenv("TKFILE_OUT");
   std::cout<<"I/O setup: TKFILE_IN "<<getenv("TKFILE_IN")<<" TKFILE_OUT "<<getenv("TKFILE_OUT")<<std::endl;
   //TFile* f = TFile::Open("./ntuple_test_1GeV_10k.root");
   // TFile* f = TFile::Open(useMatched ? "./ntuple_test_1GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_1GeV_10k_split_mock_noFWD.root");maxevt = 3000;outfilename = (useMatched ? "cmssw_3kxSingleMu1GeV_polar_noSplit_mock_noFWD.bin" : "cmssw_3kxSingleMu1GeV_polar_split_mock_noFWD.bin");
