@@ -323,6 +323,7 @@ int main() {
 
   fwrite(&maxevt, sizeof(int), 1, fp);
 
+  int nlPrinted = 0;
   long long totentries = t->GetEntriesFast();
 
   long long savedEvents = 0;
@@ -598,22 +599,34 @@ int main() {
     nstot+=ns;
 
     printf("\n");
-    for (int il = 0; il<nl; ++il) {
-      int nh = layerHits_[il].size();
-      for (int ih=0; ih<nh; ++ih ) {
-	printf("lay=%i idx=%i mcid=%i x=(%6.3f, %6.3f, %6.3f) r=%6.3f\n",il+1,ih,layerHits_[il][ih].mcHitID(),layerHits_[il][ih].x(),layerHits_[il][ih].y(),layerHits_[il][ih].z(),sqrt(pow(layerHits_[il][ih].x(),2)+pow(layerHits_[il][ih].y(),2)));
+
+    if (savedEvents < 10 || nlPrinted < 10000000){//print at most 10 events or at most 10M lines
+      for (int il = 0; il<nl; ++il) {
+	int nh = layerHits_[il].size();
+	for (int ih=0; ih<nh; ++ih ) {
+	  printf("lay=%i idx=%i mcid=%i x=(%6.3f, %6.3f, %6.3f) r=%6.3f\n",il+1,ih,layerHits_[il][ih].mcHitID(),layerHits_[il][ih].x(),layerHits_[il][ih].y(),layerHits_[il][ih].z(),sqrt(pow(layerHits_[il][ih].x(),2)+pow(layerHits_[il][ih].y(),2)));
+	  nlPrinted++;
+	}
       }
-    }
-
-    for (int i=0;i<nt;++i) {
-      printf("sim track id=%i q=%2i p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f) pT=%7.4f nTotal=%i nFound=%i \n",i,simTracks_[i].charge(),simTracks_[i].px(),simTracks_[i].py(),simTracks_[i].pz(),simTracks_[i].x(),simTracks_[i].y(),simTracks_[i].z(),sqrt(pow(simTracks_[i].px(),2)+pow(simTracks_[i].py(),2)),simTracks_[i].nTotalHits(),simTracks_[i].nFoundHits());
-      for (int ih=0;ih<Config::nLayers;++ih) printf("track #%i hit #%i idx=%i\n",i,ih,simTracks_[i].getHitIdx(ih));
-    }
-
-
-    for (int i=0;i<ns;++i) {
-      printf("seed id=%i label=%i q=%2i pT=%6.3f p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f)\n",i,seedTracks_[i].label(),seedTracks_[i].charge(),seedTracks_[i].pT(),seedTracks_[i].px(),seedTracks_[i].py(),seedTracks_[i].pz(),seedTracks_[i].x(),seedTracks_[i].y(),seedTracks_[i].z());
-      for (int ih=0;ih<3;++ih) printf("seed #%i hit #%i idx=%i\n",i,ih,seedTracks_[i].getHitIdx(ih));
+      
+      for (int i=0;i<nt;++i) {
+	printf("sim track id=%i q=%2i p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f) pT=%7.4f nTotal=%i nFound=%i \n",i,simTracks_[i].charge(),simTracks_[i].px(),simTracks_[i].py(),simTracks_[i].pz(),simTracks_[i].x(),simTracks_[i].y(),simTracks_[i].z(),sqrt(pow(simTracks_[i].px(),2)+pow(simTracks_[i].py(),2)),simTracks_[i].nTotalHits(),simTracks_[i].nFoundHits());
+	nlPrinted++;
+	for (int ih=0;ih<Config::nLayers;++ih){
+	  printf("track #%i hit #%i idx=%i\n",i,ih,simTracks_[i].getHitIdx(ih));
+	  nlPrinted++;
+	}
+      }
+      
+      
+      for (int i=0;i<ns;++i) {
+	printf("seed id=%i label=%i q=%2i pT=%6.3f p=(%6.3f, %6.3f, %6.3f) x=(%6.3f, %6.3f, %6.3f)\n",i,seedTracks_[i].label(),seedTracks_[i].charge(),seedTracks_[i].pT(),seedTracks_[i].px(),seedTracks_[i].py(),seedTracks_[i].pz(),seedTracks_[i].x(),seedTracks_[i].y(),seedTracks_[i].z());
+	nlPrinted++;
+	for (int ih=0;ih<3;++ih){
+	  printf("seed #%i hit #%i idx=%i\n",i,ih,seedTracks_[i].getHitIdx(ih));
+	  nlPrinted++;
+	}
+      }
     }
 
     savedEvents++;
