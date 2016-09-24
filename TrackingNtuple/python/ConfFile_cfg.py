@@ -45,7 +45,22 @@ process.muonSeededSeedsOutIn.cut = 'pt < 0.000001'
 #process.CkfTrajectoryBuilder.estimator = cms.string('initialStepChi2Est')
 #process.CkfTrajectoryBuilder.trajectoryFilter = cms.PSet(refToPSet_ = cms.string('initialStepTrajectoryFilter'))
 #process.CkfTrajectoryBuilder.maxCand = cms.int32(3)
-#plus hack to navigation school to avoid moving from barrel to forward (comment out 3 lines below "Add closest reachable forward layer")
+
+# noFWD
+#plus a hacked navigation school to avoid moving from barrel to forward
+#alternatively, for vanilla release, comment out 3 lines below "Add closest reachable forward layer"
+#process.navigationSchoolNoFWDESProducer = cms.ESProducer("NavigationSchoolESProducer",
+#    ComponentName = cms.string('SimpleNavigationSchoolNoFWD'),
+#    SimpleMagneticField = cms.string('')
+#)
+#
+#for module in process._Process__producers.values():
+#    if not hasattr(module, "NavigationSchool"):
+#        continue
+#    navS = getattr(module, "NavigationSchool")
+#    if navS == "SimpleNavigationSchool":
+#        module.NavigationSchool = "SimpleNavigationSchoolNoFWD"
+
 
 #noSplit
 #process.initialStepTrackCandidates.useHitsSplitting = False
