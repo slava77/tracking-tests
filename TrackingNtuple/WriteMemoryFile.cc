@@ -92,7 +92,8 @@ int main() {
 
   // TFile* f = TFile::Open("./ntuple_test_1GeV_10k_split.root"); maxevt = 3000;outfilename = "cmssw_3kxSingleMu1GeV_split_endcap.bin";
   TFile* f = TFile::Open(getenv("TKFILE_IN")); maxevt = 30000;outfilename = getenv("TKFILE_OUT");
-  std::cout<<"I/O setup: TKFILE_IN "<<getenv("TKFILE_IN")<<" TKFILE_OUT "<<getenv("TKFILE_OUT")<<std::endl;
+  std::string nEvString = getenv("MAXEVT"); if (nEvString != "") maxevt = atoi(nEvString.c_str());
+  std::cout<<"I/O setup: TKFILE_IN "<<getenv("TKFILE_IN")<<" TKFILE_OUT "<<getenv("TKFILE_OUT")<<" write "<<maxevt<<std::endl;
   //TFile* f = TFile::Open("./ntuple_test_1GeV_10k.root");
   // TFile* f = TFile::Open(useMatched ? "./ntuple_test_1GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_1GeV_10k_split_mock_noFWD.root");maxevt = 3000;outfilename = (useMatched ? "cmssw_3kxSingleMu1GeV_polar_noSplit_mock_noFWD.bin" : "cmssw_3kxSingleMu1GeV_polar_split_mock_noFWD.bin");
   // TFile* f = TFile::Open(useMatched ? "./ntuple_test_10GeV_10k_noSplit_mock_noFWD.root" : "./ntuple_test_10GeV_10k_split_mock_noFWD.root");maxevt = 3000;outfilename = (useMatched ? "cmssw_3kxSingleMu10GeV_polar_noSplit_mock_noFWD.bin" : "cmssw_3kxSingleMu10GeV_polar_split_mock_noFWD.bin");
@@ -321,7 +322,10 @@ int main() {
   t->SetBranchAddress("str_zz",&str_zz);
   t->SetBranchAddress("str_zx",&str_zx);
 
+  long long nbytes = 0;
   fwrite(&maxevt, sizeof(int), 1, fp);
+  nbytes+=sizeof(int);
+  cout<<"wrote "<<nbytes<<std::endl;
 
   int nlPrinted = 0;
   long long totentries = t->GetEntriesFast();
@@ -576,26 +580,41 @@ int main() {
 
     int nt = simTracks_.size();
     fwrite(&nt, sizeof(int), 1, fp);
+    nbytes+=sizeof(int);
+    cout<<"wrote "<<nbytes<<std::endl;
     fwrite(&simTracks_[0], sizeof(Track), nt, fp);
+    nbytes+=sizeof(Track)*nt;
+    cout<<"wrote "<<nbytes<<" added "<<nt<<" of size "<<sizeof(Track) <<std::endl;
     
     printf("number of simTracks %i\n",nt);
 
     int nl = layerHits_.size();
     fwrite(&nl, sizeof(int), 1, fp);
+    nbytes+=sizeof(int);
+    cout<<"wrote "<<nbytes<<std::endl;
     for (int il = 0; il<nl; ++il) {
       int nh = layerHits_[il].size();
       fwrite(&nh, sizeof(int), 1, fp);
+      nbytes+=sizeof(int);
       fwrite(&layerHits_[il][0], sizeof(Hit), nh, fp);
+      nbytes+=sizeof(Hit)*nh;
+      cout<<"wrote "<<nbytes<<" added "<<nh<<" of size "<<sizeof(Hit)<<std::endl;
       nhitstot[il]+=nh;
     }
     
     int nm = simHitsInfo_.size();
     fwrite(&nm, sizeof(int), 1, fp);
+    nbytes+=sizeof(int);
     fwrite(&simHitsInfo_[0], sizeof(MCHitInfo), nm, fp);
+    nbytes+=sizeof(MCHitInfo)*nm;
+    cout<<"wrote "<<nbytes<<" added "<<nm<<" of size "<<sizeof(MCHitInfo)<<std::endl;
 
     int ns = seedTracks_.size();
     fwrite(&ns, sizeof(int), 1, fp);
+    nbytes+=sizeof(int);
     fwrite(&seedTracks_[0], sizeof(Track), ns, fp);
+    nbytes+=sizeof(Track)*ns;
+    cout<<"wrote "<<nbytes<<" added "<<ns<<" of size "<<sizeof(Track)<<std::endl;
     nstot+=ns;
 
     printf("\n");
