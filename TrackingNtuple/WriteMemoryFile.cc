@@ -74,7 +74,7 @@ public:
 };
 
 bool useMatched = false;
-bool doEndcap = true;//otherwise do barrel, both at the same time not supported for now
+bool doEndcap = false;//otherwise do barrel, both at the same time not supported for now
 
 int main() {
 
